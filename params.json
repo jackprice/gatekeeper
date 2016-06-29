@@ -1,0 +1,6 @@
+{
+  "name": "Gatekeeper",
+  "tagline": "A highly-available, distributed and secure SSL-termination manager.",
+  "body": "Gatekeeper is a highly-available, distributed and secure SSL-termination manager.\r\n\r\n> **Note:** Until version 1.0.0 is reached, gatekeeper should be considered unstable and unready for production use.",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
