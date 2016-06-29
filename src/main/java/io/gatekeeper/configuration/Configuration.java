@@ -2,6 +2,7 @@ package io.gatekeeper.configuration;
 
 import io.gatekeeper.InvalidConfigurationException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,11 +35,23 @@ public class Configuration implements ConfigurationInterface {
         public String bindAddress;
         public Integer bindPort;
         public String dataDirectory;
-        public List<String> nodes;
+        public List<String> nodes = new ArrayList<String>(0);
 
         @Override
         public void merge(ConfigurationInterface configuration) {
+            ReplicationConfiguration config = (ReplicationConfiguration) configuration;
 
+            if (config.bindAddress != null) {
+                this.bindAddress = config.bindAddress;
+            }
+            if (config.bindPort != null) {
+                this.bindPort = config.bindPort;
+            }
+            if (config.dataDirectory != null) {
+                this.dataDirectory = config.dataDirectory;
+            }
+
+            this.nodes.addAll(config.nodes);
         }
 
         @Override
