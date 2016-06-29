@@ -36,6 +36,7 @@ public class Configuration implements ConfigurationInterface {
         public Integer bindPort;
         public String dataDirectory;
         public List<String> nodes = new ArrayList<String>(0);
+        public Boolean bootstrap;
 
         @Override
         public void merge(ConfigurationInterface configuration) {
@@ -49,6 +50,9 @@ public class Configuration implements ConfigurationInterface {
             }
             if (config.dataDirectory != null) {
                 this.dataDirectory = config.dataDirectory;
+            }
+            if (config.bootstrap != null) {
+                this.bootstrap = config.bootstrap;
             }
 
             this.nodes.addAll(config.nodes);
@@ -72,6 +76,9 @@ public class Configuration implements ConfigurationInterface {
                         break;
                     case "nodes":
                         this.nodes = (List<String>) value;
+                        break;
+                    case "bootstrap":
+                        this.bootstrap = (Boolean) value;
                         break;
                     default:
                         throw new InvalidConfigurationException(
