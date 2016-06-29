@@ -1,0 +1,7 @@
+#
+# This is an example gatekeeper configuration to be used for testing.
+#
+replication:
+  address: 127.0.0.1
+  port: 5001
+  directory: /etc/gatekeeper
