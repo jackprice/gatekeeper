@@ -1,142 +1,192 @@
 package io.gatekeeper.node.service;
 
-import io.atomix.AtomixReplica;
 import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.NettyTransport;
-import io.atomix.catalyst.transport.Transport;
-import io.atomix.catalyst.util.Listener;
+import io.atomix.catalyst.transport.netty.NettyTransport;
+import io.atomix.copycat.client.ConnectionStrategies;
+import io.atomix.copycat.client.CopycatClient;
+import io.atomix.copycat.client.RecoveryStrategies;
+import io.atomix.copycat.client.ServerSelectionStrategies;
+import io.atomix.copycat.server.CopycatServer;
 import io.atomix.copycat.server.storage.Storage;
-import io.atomix.group.DistributedGroup;
-import io.atomix.group.GroupMember;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
+import io.gatekeeper.node.service.replication.StateMachine;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ReplicationService implements Closeable {
 
-    private Configuration configuration;
+    private final NettyTransport transport;
 
-    private DistributedGroup servers;
+    private final Address address;
 
-    private Logger logger;
+    private final Storage storage;
 
-    private AtomixReplica replica;
+    private final Configuration configuration;
 
-    private Groups groups = new Groups();
+    private final Logger logger;
+
+    private final Executor executor;
+
+    private final List<Address> initialClusterAddresses;
+
+    private CopycatServer server;
+
+    private CopycatClient client;
 
     public ReplicationService(Configuration configuration) {
         this.configuration = configuration;
         this.logger = Loggers.getReplicationLogger();
+        this.executor = Executors.newFixedThreadPool(2);
+        this.address = new Address(
+            this.configuration.replication.bindAddress,
+            this.configuration.replication.bindPort
+        );
+        this.transport = new NettyTransport();
+        this.storage = new Storage(this.configuration.replication.dataDirectory);
+
+        this.initialClusterAddresses = new ArrayList<>(this.configuration.replication.nodes.size());
+        this.initialClusterAddresses.addAll(this.configuration.replication.nodes
+            .stream()
+            .map(Address::new)
+            .collect(Collectors.toList()));
     }
 
     public CompletableFuture start() {
-        return CompletableFuture.runAsync(() -> {
-            Address address = new Address(
-                this.configuration.replication.bindAddress,
-                this.configuration.replication.bindPort
-            );
-            Transport transport = new NettyTransport();
-            Storage storage = new Storage(this.configuration.replication.dataDirectory);
+        CompletableFuture<Void> future = new CompletableFuture<>();
 
-            this.replica = AtomixReplica.builder(address)
-                .withTransport(transport)
-                .withStorage(storage)
+        this.executor.execute(() -> {
+            if (this.configuration.replication.server) {
+                this.startServer().join();
+            }
+
+            this.startClient().join();
+
+            future.complete(null);
+        });
+
+        return future;
+    }
+
+    private CompletableFuture startServer() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        this.executor.execute(() -> {
+            this.logger.info("Starting server");
+
+            this.server = CopycatServer.builder(this.address)
+                .withTransport(this.transport)
+                .withStorage(this.storage)
+                .withStateMachine(StateMachine::new)
+                .withName(this.address.toString())
                 .build();
 
-            if (this.configuration.replication.bootstrap) {
-                this.bootstrap().join();
-            } else {
-                this.joinCluster().join();
-            }
-
-            this.setUpGroups().join();
-        });
-    }
-
-    private CompletableFuture setUpGroups() {
-        return CompletableFuture.runAsync(() -> {
-            this.groups.servers = this.replica.getGroup(Groups.GROUP_SERVERS).join();
+            this.server.onStateChange(this::onServerStateChange);
 
             if (this.configuration.replication.bootstrap) {
-                this.logger.info(String.format("Joining %s group", Groups.GROUP_SERVERS));
+                this.doServerLog("Bootstrapping server");
 
-                this.groups.servers.join().join();
+                this.server.bootstrap().join();
             }
 
-            this.groups.servers.onJoin((GroupMember member) -> {
-                this.logger.info(String.format("%s joined %s", member.id(), Groups.GROUP_SERVERS));
-            });
-        });
-    }
+            if (this.initialClusterAddresses.size() > 0) {
+                this.doServerLog("Joining cluster");
 
-    private CompletableFuture bootstrap() {
-        return CompletableFuture.runAsync(() -> {
-            this.logger.info("Bootstrapping cluster");
-
-            List<Address> nodes = this.getNodes();
-
-            if (nodes.size() == 1) {
-                this.logger.warning("Bootstrapping cluster with one node");
-
-                this.replica.bootstrap().join();
-            } else {
-                this.replica.bootstrap(nodes).join();
+                this.server.join(this.initialClusterAddresses).join();
             }
 
-            this.logger.info("Cluster bootstrapped");
+            this.doServerLog("Server startup complete");
+
+
+            future.complete(null);
         });
+
+        return future;
     }
 
-    private CompletableFuture joinCluster() {
-        return CompletableFuture.runAsync(() -> {
-            this.logger.info("Joining cluster");
+    private CompletableFuture startClient() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
 
-            List<Address> nodes = this.getNodes();
+        this.executor.execute(() -> {
+            this.logger.info("Starting client");
 
-            if (nodes.size() == 1) {
-                this.logger.warning("Joining cluster with one node - will not be able to bootstrap");
+            this.client = CopycatClient.builder(this.address)
+                .withTransport(this.transport)
+                .withConnectionStrategy(ConnectionStrategies.FIBONACCI_BACKOFF)
+                .withRecoveryStrategy(RecoveryStrategies.RECOVER)
+                .withServerSelectionStrategy(ServerSelectionStrategies.FOLLOWERS)
+                .build();
 
-                this.replica.join();
-            } else {
-                this.replica.join(nodes);
-            }
+            this.client.onStateChange(this::onClientStateChange);
 
-            this.logger.info("Joined cluster");
+            this.logger.info("Connecting to cluster");
+
+            this.client.connect(this.initialClusterAddresses).join();
+
+            this.logger.info("Client startup complete");
+
+            future.complete(null);
         });
+
+        return future;
     }
 
-    private List<Address> getNodes() {
-        List<Address> nodes = new ArrayList<>(this.configuration.replication.nodes.size() + 1);
-
-        for (String node : this.configuration.replication.nodes) {
-            Address address = new Address(node);
-
-            nodes.add(address);
+    private void onServerStateChange(CopycatServer.State state) {
+        switch (state) {
+            case INACTIVE:
+                this.doServerLog("Server state changed to INACTIVE");
+                break;
+            case RESERVE:
+                this.doServerLog("Server state changed to RESERVE");
+                break;
+            case PASSIVE:
+                this.doServerLog("Server state changed to PASSIVE");
+                break;
+            case FOLLOWER:
+                this.doServerLog("Server state changed to FOLLOWER");
+                break;
+            case CANDIDATE:
+                this.doServerLog("Server state changed to CANDIDATE");
+                break;
+            case LEADER:
+                this.doServerLog("Server state changed to LEADER");
+                break;
         }
+    }
 
-        nodes.add(new Address(this.configuration.replication.bindAddress, this.configuration.replication.bindPort));
-
-        return nodes;
+    private void onClientStateChange(CopycatClient.State state) {
+        switch (state) {
+            case CONNECTED:
+                this.logger.info("Client state changed to CONNECTED");
+                break;
+            case SUSPENDED:
+                this.logger.info("Client state changed to SUSPENDED");
+                break;
+            case CLOSED:
+                this.logger.info("Client state changed to CLOSED");
+                break;
+        }
     }
 
     @Override
     public void close() {
-        this.logger.info("Leaving cluster");
+        if (this.server != null) {
+            this.server.shutdown().join();
+        }
 
-        this.replica.leave().join();
-
-        this.logger.info("Cluster shut down successfully");
+        if (this.client != null) {
+            this.client.close().join();
+        }
     }
 
-    private class Groups {
-        public static final String GROUP_SERVERS = "servers";
-
-        public DistributedGroup servers;
+    private void doServerLog(String log) {
+        this.logger.info(this.server.name() + ": " + log);
     }
 }

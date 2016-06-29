@@ -2,7 +2,7 @@ package io.gatekeeper;
 
 import org.junit.AfterClass;
 
-import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,6 +24,12 @@ public class GatekeeperTest {
     @AfterClass
     public static void tearDown() throws IOException {
         for (Path path : temporaryDirectories) {
+            File file = new File(path.toString());
+
+            for (File nested : file.listFiles()) {
+                nested.delete();
+            }
+
             Files.delete(path);
         }
     }

@@ -6,7 +6,11 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import static java.lang.Thread.sleep;
 
 public class ReplicationServiceTest extends GatekeeperTest {
 
@@ -20,6 +24,7 @@ public class ReplicationServiceTest extends GatekeeperTest {
         configuration.replication.bindPort = 63512;
         configuration.replication.dataDirectory = dataDirectory.toString();
         configuration.replication.bootstrap = Boolean.TRUE;
+        configuration.replication.server = Boolean.TRUE;
 
         ReplicationService replication = new ReplicationService(configuration);
 
@@ -29,7 +34,7 @@ public class ReplicationServiceTest extends GatekeeperTest {
     }
 
     @Test
-    public void testCanBootstrapThreeNodeCluster() throws IOException {
+    public void testCanBootstrapThreeNodeCluster() throws IOException, InterruptedException {
         Path dataDirectoryA = createTemporaryDirectory();
         Path dataDirectoryB = createTemporaryDirectory();
         Path dataDirectoryC = createTemporaryDirectory();
@@ -42,9 +47,13 @@ public class ReplicationServiceTest extends GatekeeperTest {
             = configurationB.replication.bindAddress
             = configurationC.replication.bindAddress
             = "127.0.0.1";
-        configurationA.replication.bootstrap
-            = configurationB.replication.bootstrap
+        configurationA.replication.bootstrap = Boolean.TRUE;
+        configurationB.replication.bootstrap
             = configurationC.replication.bootstrap
+            = Boolean.FALSE;
+        configurationA.replication.server
+            = configurationB.replication.server
+            = configurationC.replication.server
             = Boolean.TRUE;
 
         configurationA.replication.dataDirectory = dataDirectoryA.toString();
@@ -54,6 +63,12 @@ public class ReplicationServiceTest extends GatekeeperTest {
         configurationA.replication.bindPort = 63513;
         configurationB.replication.bindPort = 63514;
         configurationC.replication.bindPort = 63515;
+
+        List<String> nodes = Arrays.asList("127.0.0.1:63513", "127.0.0.1:63514", "127.0.0.1:63515");
+
+        configurationA.replication.nodes.addAll(nodes);
+        configurationB.replication.nodes.addAll(nodes);
+        configurationC.replication.nodes.addAll(nodes);
 
         ReplicationService replicationA = new ReplicationService(configurationA);
         ReplicationService replicationB = new ReplicationService(configurationB);
