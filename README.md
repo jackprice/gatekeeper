@@ -30,5 +30,10 @@ replication:
 
   # Set this to true if this node is eligible to be a cluster leader.
   # At least one node in the cluster must have this set, and it is recommended to have 3.
+  server: true
+
+  # Set this true to allow this node to become the first leader of the cluster.
+  # At least one node in the cluster must have this set the first time the cluster is booted.
   bootstrap: true
+
 ```
