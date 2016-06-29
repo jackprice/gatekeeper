@@ -18,6 +18,7 @@ public class ConfigurationTest {
         replicationData.put("directory", "foo");
         replicationData.put("nodes", Arrays.asList("10.1.1.1", "10.1.1.2"));
         replicationData.put("bootstrap", Boolean.TRUE);
+        replicationData.put("server", Boolean.TRUE);
 
         data.put("replication", replicationData);
 
@@ -30,6 +31,7 @@ public class ConfigurationTest {
         assertEquals("foo", configuration.replication.dataDirectory);
         assertEquals(Arrays.asList("10.1.1.1", "10.1.1.2"), configuration.replication.nodes);
         assertEquals(Boolean.TRUE, configuration.replication.bootstrap);
+        assertEquals(Boolean.TRUE, configuration.replication.server);
     }
 
     @Test
@@ -41,11 +43,13 @@ public class ConfigurationTest {
         configurationOne.replication.bindPort = 5000;
         configurationOne.replication.dataDirectory = "foo";
         configurationTwo.replication.nodes.add("10.1.1.2");
+        configurationTwo.replication.server = Boolean.TRUE;
 
         configurationTwo.replication.bindAddress = "10.6.1.1";
         configurationTwo.replication.bindPort = 5002;
         configurationTwo.replication.nodes.add("10.1.1.1");
         configurationTwo.replication.bootstrap = Boolean.TRUE;
+        configurationTwo.replication.server = Boolean.FALSE;
 
         configurationOne.merge(configurationTwo);
 
@@ -54,6 +58,7 @@ public class ConfigurationTest {
         assertEquals("foo", configurationOne.replication.dataDirectory);
         assertEquals(Arrays.asList("10.1.1.2", "10.1.1.1"), configurationOne.replication.nodes);
         assertEquals(Boolean.TRUE, configurationOne.replication.bootstrap);
+        assertEquals(Boolean.FALSE, configurationOne.replication.server);
     }
 
 }
