@@ -1,13 +1,11 @@
 package io.gatekeeper.configuration;
 
-import com.sun.tools.internal.jxc.ConfigReader;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,7 +23,7 @@ public class FileParser<T extends ConfigurationInterface> {
      * Constructor.
      *
      * @param clazz The configuration class this parser instantiates
-     * @param path The path to the config file
+     * @param path  The path to the config file
      */
     public FileParser(Class<T> clazz, String path) {
         this.clazz = clazz;

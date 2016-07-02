@@ -1,6 +1,5 @@
 package io.gatekeeper.configuration;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.gatekeeper.InvalidConfigurationException;
 import io.gatekeeper.configuration.annotation.Config;
 import io.gatekeeper.configuration.annotation.Discriminator;

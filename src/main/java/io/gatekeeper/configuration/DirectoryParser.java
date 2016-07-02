@@ -16,7 +16,7 @@ public class DirectoryParser<T extends ConfigurationInterface> {
      * Constructor.
      *
      * @param clazz The configuration class this parser instantiates
-     * @param path The path to the directory containing config files.
+     * @param path  The path to the directory containing config files.
      */
     public DirectoryParser(Class<T> clazz, String path) {
         this.clazz = clazz;
