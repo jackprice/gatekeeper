@@ -1,5 +1,6 @@
 package io.gatekeeper.configuration;
 
+import com.sun.tools.internal.jxc.ConfigReader;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -12,28 +13,31 @@ import java.util.Map;
 /**
  * A class that takes a configuration files and returns the parsed result.
  */
-public class FileParser {
+public class FileParser<T extends ConfigurationInterface> {
 
-    /**
-     * The path to the config file.
-     */
-    private String path;
+    private final Class<T> clazz;
+
+    private final String path;
+
+    private final ConfigurationReader reader = new ConfigurationReader();
 
     /**
      * Constructor.
      *
-     * @param path The path to the config file.
+     * @param clazz The configuration class this parser instantiates
+     * @param path The path to the config file
      */
-    public FileParser(String path) {
+    public FileParser(Class<T> clazz, String path) {
+        this.clazz = clazz;
         this.path = path;
     }
 
     /**
-     * Parse the configuration file.
+     * Parse the configuration file
      *
      * @return The parsed configuration
      */
-    public Configuration parse() throws IOException {
+    public T parse() throws IOException, InstantiationException, IllegalAccessException {
         String yaml = this.read();
 
         return this.parseYaml(yaml);
@@ -59,15 +63,12 @@ public class FileParser {
      *
      * @return The parsed configuration object
      */
-    private Configuration parseYaml(String string) {
+    @SuppressWarnings("unchecked")
+    private T parseYaml(String string) throws IllegalAccessException, InstantiationException {
         Yaml yaml = new Yaml();
-        Configuration configuration = new Configuration();
 
-        Object data = yaml.load(string);
-        Map<String, Object> map = (Map<String, Object>) data;
+        Map<String, Object> data = (Map<String, Object>) yaml.loadAs(string, Map.class);
 
-        configuration.fromMap(map);
-
-        return configuration;
+        return this.reader.createConfigurationObjectFromData(this.clazz, data);
     }
 }

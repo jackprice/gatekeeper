@@ -1,98 +1,71 @@
 package io.gatekeeper.configuration;
 
 import io.gatekeeper.InvalidConfigurationException;
+import io.gatekeeper.configuration.annotation.Config;
+import io.gatekeeper.configuration.data.BackendConfiguration;
+import io.gatekeeper.configuration.data.ProviderConfiguration;
+import io.gatekeeper.configuration.data.ReplicationConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-interface ConfigurationInterface {
-    public void merge(ConfigurationInterface configuration);
+public class Configuration implements ConfigurationInterface<Configuration> {
 
-    public void fromMap(Map<String, Object> map) throws InvalidConfigurationException;
-}
+    @Config(name = "replication", type = ReplicationConfiguration.class)
+    public ReplicationConfiguration replication;
 
-/**
- * A container for holding runtime configuration.
- */
-public class Configuration implements ConfigurationInterface {
+    @Config(name = "backend", type = BackendConfiguration.class)
+    public BackendConfiguration backend;
 
-    public ReplicationConfiguration replication = new ReplicationConfiguration();
+    @Config(name = "providers", type = ProviderConfiguration.class, collection = true)
+    public List<ProviderConfiguration> providers = new ArrayList<>();
 
     @Override
-    public void merge(ConfigurationInterface configuration) {
-        this.replication.merge(((Configuration) configuration).replication);
+    public void validate() throws InvalidConfigurationException {
+        if (this.replication == null) {
+            throw new InvalidConfigurationException("No replication configured");
+        }
+        if (this.backend == null) {
+            throw new InvalidConfigurationException("No backend configured");
+        }
+        if (this.providers == null || this.providers.size() == 0) {
+            throw new InvalidConfigurationException("No providers configured");
+        }
+
+        this.replication.validate();
+        this.backend.validate();
+        this.providers.forEach(ConfigurationInterface::validate);
     }
 
     @Override
-    public void fromMap(Map<String, Object> map) {
-        if (map.containsKey("replication")) {
-            this.replication.fromMap((Map<String, Object>) map.get("replication"));
+    public void merge(Configuration configuration) {
+        if (this.replication == null) {
+            this.replication = configuration.replication;
         }
-    }
-
-    public class ReplicationConfiguration implements ConfigurationInterface {
-        public String bindAddress;
-        public Integer bindPort;
-        public String dataDirectory;
-        public List<String> nodes = new ArrayList<String>(0);
-        public Boolean bootstrap;
-        public Boolean server;
-
-        @Override
-        public void merge(ConfigurationInterface configuration) {
-            ReplicationConfiguration config = (ReplicationConfiguration) configuration;
-
-            if (config.bindAddress != null) {
-                this.bindAddress = config.bindAddress;
-            }
-            if (config.bindPort != null) {
-                this.bindPort = config.bindPort;
-            }
-            if (config.dataDirectory != null) {
-                this.dataDirectory = config.dataDirectory;
-            }
-            if (config.bootstrap != null) {
-                this.bootstrap = config.bootstrap;
-            }
-            if (config.server != null) {
-                this.server = config.server;
+        if (configuration.replication != null) {
+            if (!this.replication.getClass().equals(configuration.replication.getClass())) {
+                throw new InvalidConfigurationException(
+                    "Attempted to merge two different replication providers - only one can be configured"
+                );
             }
 
-            this.nodes.addAll(config.nodes);
+            this.replication.merge(configuration.replication);
         }
 
-        @Override
-        public void fromMap(Map<String, Object> map) throws InvalidConfigurationException {
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-
-                switch (key) {
-                    case "address":
-                        this.bindAddress = value.toString();
-                        break;
-                    case "port":
-                        this.bindPort = Integer.parseInt(value.toString());
-                        break;
-                    case "directory":
-                        this.dataDirectory = value.toString();
-                        break;
-                    case "nodes":
-                        this.nodes = (List<String>) value;
-                        break;
-                    case "bootstrap":
-                        this.bootstrap = (Boolean) value;
-                        break;
-                    case "server":
-                        this.server = (Boolean) value;
-                        break;
-                    default:
-                        throw new InvalidConfigurationException(
-                                String.format("Unknown configuration value %s", key)
-                        );
-                }
-            }
+        if (this.backend == null) {
+            this.backend = configuration.backend;
         }
+        if (configuration.backend != null) {
+            if (!this.backend.getClass().equals(configuration.backend.getClass())) {
+                throw new InvalidConfigurationException(
+                    "Attempted to merge two different backend providers - only one can be configured"
+                );
+            }
+
+            this.backend.merge(configuration.backend);
+        }
+
+
+        this.providers.addAll(configuration.providers);
     }
 }

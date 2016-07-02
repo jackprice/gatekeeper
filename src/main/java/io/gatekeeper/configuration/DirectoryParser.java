@@ -6,19 +6,20 @@ import java.io.IOException;
 /**
  * A class that takes a directory of configuration files, parses them and returns the merged result.
  */
-public class DirectoryParser {
+public class DirectoryParser<T extends ConfigurationInterface> {
 
-    /**
-     * The path to the directory containing config files.
-     */
+    private final Class<T> clazz;
+
     private String path;
 
     /**
      * Constructor.
      *
+     * @param clazz The configuration class this parser instantiates
      * @param path The path to the directory containing config files.
      */
-    public DirectoryParser(String path) {
+    public DirectoryParser(Class<T> clazz, String path) {
+        this.clazz = clazz;
         this.path = path;
     }
 
@@ -27,15 +28,16 @@ public class DirectoryParser {
      *
      * @return The parsed configuration
      */
-    public Configuration parse() throws IOException {
-        Configuration configuration = new Configuration();
+    @SuppressWarnings("unchecked")
+    public T parse() throws IOException, IllegalAccessException, InstantiationException {
+        T configuration = clazz.newInstance();
         File[] files = new File(this.path).listFiles(); // TODO: Only list files with a likely extension
 
         assert files != null;
 
         for (File file : files) {
-            FileParser fileParser = new FileParser(file.getPath());
-            Configuration fileConfiguration = fileParser.parse();
+            FileParser<T> fileParser = new FileParser<T>(clazz, file.getPath());
+            T fileConfiguration = fileParser.parse();
 
             configuration.merge(fileConfiguration);
         }

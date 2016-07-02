@@ -1,5 +1,6 @@
 package io.gatekeeper.configuration;
 
+import io.gatekeeper.configuration.data.replication.LocalReplicationConfiguration;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -10,15 +11,19 @@ import static org.junit.Assert.assertEquals;
 public class DirectoryParserTest {
 
     @Test
-    public void testValid() throws IOException {
-        DirectoryParser parser = new DirectoryParser("src/test/data/configuration/valid");
+    public void testValid() throws IOException, InstantiationException, IllegalAccessException {
+        DirectoryParser<Configuration> parser = new DirectoryParser<>(
+            Configuration.class,
+            "src/test/data/configuration/valid"
+        );
 
         Configuration configuration = parser.parse();
 
-        assertEquals("127.0.0.1", configuration.replication.bindAddress);
-        assertEquals((long) 5001, (long) configuration.replication.bindPort);
-        assertEquals("/etc/gatekeeper", configuration.replication.dataDirectory);
-        assertEquals(Arrays.asList("10.1.1.1:1000", "10.1.1.2:1000"), configuration.replication.nodes);
+        assertEquals(true, configuration.replication.server);
+        assertEquals(false, configuration.replication.bootstrap);
+        assertEquals("10.6.1.1", configuration.replication.address);
+        assertEquals((long) 4321, (long) configuration.replication.port);
+        assertEquals(configuration.replication.getClass(), LocalReplicationConfiguration.class);
     }
 
 }

@@ -2,9 +2,8 @@
 # This is an example gatekeeper configuration to be used for testing.
 #
 replication:
+  type: local
+  server: true
+  bootstrap: true
   address: 127.0.0.1
-  port: 5000
-  directory: /var/lib/gatekeeper
-  nodes:
-  - "10.1.1.1:1000"
-  - "10.1.1.2:1000"
+  port: 1234
