@@ -5,6 +5,7 @@ import io.gatekeeper.GatekeeperException;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
 import io.gatekeeper.node.service.ApiService;
+import io.gatekeeper.node.service.BackendService;
 import io.gatekeeper.node.service.ReplicationService;
 import io.gatekeeper.node.service.Service;
 
@@ -98,9 +99,10 @@ public class Node implements Closeable {
 
     private List<Service> createServices() {
         ReplicationService replication = this.createReplicationService();
+        BackendService backend = this.createBackendService();
         ApiService api = new ApiService(this.configuration, replication);
 
-        return Arrays.asList(replication, api);
+        return Arrays.asList(replication, backend, api);
     }
 
     @SuppressWarnings("unchecked")
@@ -112,6 +114,20 @@ public class Node implements Closeable {
         } catch (Exception exception) {
             throw new GatekeeperException(
                 String.format("Failed to create replication service %s", clazz.getCanonicalName()),
+                exception
+            );
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private BackendService createBackendService() {
+        Class<BackendService> clazz = (Class<BackendService>) this.configuration.backend.serviceClass();
+
+        try {
+            return clazz.getConstructor(Configuration.class).newInstance(this.configuration);
+        } catch (Exception exception) {
+            throw new GatekeeperException(
+                String.format("Failed to create backend service %s", clazz.getCanonicalName()),
                 exception
             );
         }
