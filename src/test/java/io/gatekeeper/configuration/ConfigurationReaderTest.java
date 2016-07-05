@@ -22,17 +22,16 @@ public class ConfigurationReaderTest {
         replicationData.put("type", "local");
         replicationData.put("server", true);
         replicationData.put("bootstrap", false);
-        replicationData.put("address", "127.0.0.1");
-        replicationData.put("port", 1234);
+        replicationData.put("rpc_address", "127.0.0.1");
+        replicationData.put("rpc_port", 1234);
 
         data.put("replication", replicationData);
 
         Configuration configuration = reader.createConfigurationObjectFromData(Configuration.class, data);
 
         assertEquals(true, configuration.replication.server);
-        assertEquals(false, configuration.replication.bootstrap);
-        assertEquals("127.0.0.1", configuration.replication.address);
-        assertEquals((long) 1234, (long) configuration.replication.port);
+        assertEquals("127.0.0.1", configuration.replication.rpcAddress);
+        assertEquals((long) 1234, (long) configuration.replication.rpcPort);
         assertEquals(configuration.replication.getClass(), LocalReplicationConfiguration.class);
     }
 }

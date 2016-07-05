@@ -30,7 +30,6 @@ public class DevelopCommand extends AbstractCommand {
 
         configuration.replication = new LocalReplicationConfiguration();
 
-        configuration.replication.bootstrap = Boolean.TRUE;
         configuration.replication.server = Boolean.TRUE;
 
         return configuration;

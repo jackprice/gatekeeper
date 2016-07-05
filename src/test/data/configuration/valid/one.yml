@@ -4,6 +4,5 @@
 replication:
   type: local
   server: true
-  bootstrap: true
-  address: 127.0.0.1
-  port: 1234
+  rpc_address: 127.0.0.1
+  rpc_port: 1234

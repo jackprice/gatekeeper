@@ -19,20 +19,16 @@ public abstract class ReplicationConfiguration<T extends ConfigurationInterface,
     @Config(name = "server", type = Boolean.class)
     public Boolean server = false;
 
-    @Config(name = "bootstrap", type = Boolean.class)
-    public Boolean bootstrap = false;
+    @Config(name = "rpc_address", type = String.class)
+    public String rpcAddress = "127.0.0.1";
 
-    @Config(name = "address", type = String.class)
-    public String address = "127.0.0.1";
-
-    @Config(name = "port", type = Integer.class)
-    public Integer port = 8123;
+    @Config(name = "rpc_port", type = Integer.class)
+    public Integer rpcPort = 8123;
 
     public void merge(ReplicationConfiguration configuration) {
         this.server = configuration.server;
-        this.bootstrap = configuration.bootstrap;
-        this.address = configuration.address;
-        this.port = configuration.port;
+        this.rpcAddress = configuration.rpcAddress;
+        this.rpcPort = configuration.rpcPort;
     }
 
     public abstract Class<U> serviceClass();

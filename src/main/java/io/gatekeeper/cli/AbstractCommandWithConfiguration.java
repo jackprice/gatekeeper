@@ -36,7 +36,6 @@ public abstract class AbstractCommandWithConfiguration extends AbstractCommand {
         CommandLine line;
         Options options = new Options();
 
-        options.addOption(null, "bootstrap", false, null);
         options.addOption(null, "server", false, null);
         options.addOption(null, "config-dir", true, null);
         options.addOption(null, "config-file", true, null);
@@ -63,7 +62,6 @@ public abstract class AbstractCommandWithConfiguration extends AbstractCommand {
             }
         }
 
-        if (options.hasLongOption("bootstrap")) configuration.replication.bootstrap = Boolean.TRUE;
         if (options.hasLongOption("server")) configuration.replication.server = Boolean.TRUE;
     }
 }

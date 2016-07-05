@@ -14,7 +14,7 @@ public class LocalReplicationConfiguration
 
     @Override
     public void merge(LocalReplicationConfiguration configuration) {
-
+        super.merge((ReplicationConfiguration) configuration);
     }
 
     @Override

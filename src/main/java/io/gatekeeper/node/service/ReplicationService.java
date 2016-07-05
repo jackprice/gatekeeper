@@ -2,22 +2,28 @@ package io.gatekeeper.node.service;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.configuration.Configuration;
+import io.gatekeeper.configuration.data.ReplicationConfiguration;
 import io.gatekeeper.logging.Loggers;
+import io.gatekeeper.node.service.replication.common.Node;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Logger;
 
-public abstract class ReplicationService implements Service {
+public abstract class ReplicationService<ReplicationConfigurationType extends ReplicationConfiguration> implements Service {
 
-    private final Configuration configuration;
+    protected final ReplicationConfigurationType replicationConfiguration;
 
-    private final Logger logger;
+    protected final Configuration configuration;
+
+    protected final Logger logger;
 
     protected final ThreadPoolExecutor executor;
 
     public ReplicationService(Configuration configuration) {
         this.configuration = configuration;
+        this.replicationConfiguration = (ReplicationConfigurationType) configuration.replication;
         this.logger = Loggers.getReplicationLogger();
         this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
             (new ThreadFactoryBuilder())
@@ -29,21 +35,11 @@ public abstract class ReplicationService implements Service {
         this.executor.prestartAllCoreThreads();
     }
 
-    public CompletableFuture start() {
-        CompletableFuture<Void> future = new CompletableFuture<>();
+    public abstract CompletableFuture<Void> start();
 
-        this.executor.execute(() -> {
-            if (this.configuration.replication.server) {
-                this.startServer().join();
-            }
+    public abstract CompletableFuture<Integer> countNodes();
 
-            this.startClient().join();
-
-            future.complete(null);
-        });
-
-        return future;
-    }
+    public abstract CompletableFuture<List<Node>> fetchNodes();
 
     @Override
     public void close() throws IOException {
@@ -62,8 +58,4 @@ public abstract class ReplicationService implements Service {
 
         this.logger.info("Replication threads halted");
     }
-
-    abstract protected CompletableFuture startServer();
-
-    abstract protected CompletableFuture startClient();
 }
