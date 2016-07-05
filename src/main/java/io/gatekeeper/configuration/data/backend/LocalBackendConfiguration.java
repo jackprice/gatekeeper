@@ -8,7 +8,7 @@ public class LocalBackendConfiguration extends BackendConfiguration<LocalBackend
 
     @Override
     public Class<LocalBackendService> serviceClass() {
-        return null;
+        return LocalBackendService.class;
     }
 
     @Override

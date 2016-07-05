@@ -12,6 +12,12 @@ public abstract class AbstractCommandWithConfiguration extends AbstractCommand {
 
     private Configuration configuration;
 
+    public void configure() {
+        this.withFlag("server");
+        this.withOption("config-dir");
+        this.withOption("config-file");
+    }
+
     protected Configuration getConfiguration(Input input) throws Exception {
         if (configuration == null) {
             try {

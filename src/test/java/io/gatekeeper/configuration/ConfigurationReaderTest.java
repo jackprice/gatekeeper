@@ -34,4 +34,44 @@ public class ConfigurationReaderTest {
         assertEquals((long) 1234, (long) configuration.replication.rpcPort);
         assertEquals(configuration.replication.getClass(), LocalReplicationConfiguration.class);
     }
+
+    @Test(expected = InvalidConfigurationException.class)
+    public void testInvalidDiscriminator() throws IllegalAccessException, InstantiationException {
+        ConfigurationReader reader  = new ConfigurationReader();
+
+        Map<String, Object> data = new HashMap<>();
+        Map<String, Object> replicationData = new HashMap<>();
+
+        replicationData.put("type", "foo");
+        replicationData.put("server", true);
+        replicationData.put("bootstrap", false);
+        replicationData.put("rpc_address", "127.0.0.1");
+        replicationData.put("rpc_port", 1234);
+
+        data.put("replication", replicationData);
+
+        reader.createConfigurationObjectFromData(Configuration.class, data);
+    }
+
+    @Test(expected = InvalidConfigurationException.class)
+    public void testInvalidListExpected() throws IllegalAccessException, InstantiationException {
+        ConfigurationReader reader  = new ConfigurationReader();
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("backend", "foo");
+
+        reader.createConfigurationObjectFromData(Configuration.class, data);
+    }
+
+    @Test(expected = InvalidConfigurationException.class)
+    public void testInvalidObjectExpected() throws IllegalAccessException, InstantiationException {
+        ConfigurationReader reader  = new ConfigurationReader();
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("replication", "foo");
+
+        reader.createConfigurationObjectFromData(Configuration.class, data);
+    }
 }

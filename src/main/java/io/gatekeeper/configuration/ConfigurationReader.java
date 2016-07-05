@@ -14,19 +14,24 @@ public class ConfigurationReader {
     public <T extends ConfigurationInterface> T createConfigurationObjectFromData(
         Class<T> clazz,
         Map<String, Object> data
-    ) throws
-        InstantiationException,
-        IllegalAccessException {
+    ) throws InstantiationException, IllegalAccessException {
+        return createConfigurationObjectFromData(clazz, data, "$");
+    }
 
+    public <T extends ConfigurationInterface> T createConfigurationObjectFromData(
+        Class<T> clazz,
+        Map<String, Object> data,
+        String trace
+    ) throws InstantiationException, IllegalAccessException {
         T configuration;
 
         if (this.isAbstractClass(clazz)) {
-            configuration = this.createAbstractInstance(clazz, data);
+            configuration = this.createAbstractInstance(clazz, data, trace);
         } else {
             configuration = this.createInstance(clazz);
         }
 
-        this.addDataToConfigurationObject(configuration, data);
+        this.addDataToConfigurationObject(configuration, data, trace);
 
         return configuration;
     }
@@ -51,7 +56,17 @@ public class ConfigurationReader {
         return true;
     }
 
-    private void addDataToConfigurationObject(ConfigurationInterface object, Map<String, Object> data) throws
+    /**
+     * Add data to the given configuration object.
+     *
+     * The trace parameter is used to keep track of nested configuration parameters, so we can provide a detailed
+     * overview of any configuration errors.
+     */
+    private void addDataToConfigurationObject(
+        ConfigurationInterface object,
+        Map<String, Object> data,
+        String trace
+    ) throws
         InstantiationException,
         IllegalAccessException {
         Map<Config, Field> fields = this.getFieldsForClass(object.getClass());
@@ -60,13 +75,12 @@ public class ConfigurationReader {
             String key = dataEntry.getKey();
             Object value = dataEntry.getValue();
 
-
             for (Map.Entry<Config, Field> entry : fields.entrySet()) {
                 Config config = entry.getKey();
                 Field field = entry.getValue();
 
                 if (config.name().equals(key)) {
-                    Object fieldValue = this.instantiateProperty(field, config, value);
+                    Object fieldValue = this.instantiateProperty(field, config, value, trace + "." + config.name());
 
                     field.set(object, fieldValue);
                 }
@@ -76,7 +90,7 @@ public class ConfigurationReader {
     }
 
     @SuppressWarnings("unchecked")
-    private <U> U instantiateObjectFromData(Class<U> clazz, Object data) throws
+    private <U> U instantiateObjectFromData(Class<U> clazz, Object data, String trace) throws
         IllegalAccessException,
         InstantiationException {
 
@@ -84,8 +98,9 @@ public class ConfigurationReader {
             if (!clazz.isAssignableFrom(data.getClass())) {
                 throw new InvalidConfigurationException(
                     String.format(
-                        "Invalid type %s (expected %s)",
+                        "Invalid type %s at %s (expected %s)",
                         data.getClass().getCanonicalName(),
+                        trace,
                         clazz.getCanonicalName()
                     )
                 );
@@ -101,7 +116,7 @@ public class ConfigurationReader {
                 );
             }
 
-            return (U) this.createConfigurationObjectFromData((Class<ConfigurationInterface>) clazz, (Map) data);
+            return (U) this.createConfigurationObjectFromData((Class<ConfigurationInterface>) clazz, (Map) data, trace);
         }
 
         throw new InvalidConfigurationException(
@@ -110,25 +125,25 @@ public class ConfigurationReader {
     }
 
     @SuppressWarnings("unchecked")
-    private Object instantiateProperty(Field field, Config config, Object data) throws
+    private Object instantiateProperty(Field field, Config config, Object data, String trace) throws
         InstantiationException,
         IllegalAccessException {
         if (config.collection()) {
             if (!List.class.isAssignableFrom(data.getClass())) {
                 throw new InvalidConfigurationException(
-                    String.format("Invalid type %s (expected a list)", data.getClass().getCanonicalName())
+                    String.format("Invalid value at %s (expected a list)", trace)
                 );
             }
 
             List list = new ArrayList();
 
             for (Object item : (List<Object>) data) {
-                list.add(this.instantiateObjectFromData(config.type(), item));
+                list.add(this.instantiateObjectFromData(config.type(), item, trace));
             }
 
             return list;
         } else {
-            return this.instantiateObjectFromData(config.type(), data);
+            return this.instantiateObjectFromData(config.type(), data, trace);
         }
     }
 
@@ -173,9 +188,11 @@ public class ConfigurationReader {
      * @return The instantiated class
      */
     @SuppressWarnings("unchecked")
-    private <T extends ConfigurationInterface> T createAbstractInstance(Class<T> clazz, Map<String, Object> data) throws
-        InstantiationException,
-        IllegalAccessException {
+    private <T extends ConfigurationInterface> T createAbstractInstance(
+        Class<T> clazz,
+        Map<String, Object> data,
+        String trace
+    ) throws InstantiationException, IllegalAccessException {
         Discriminator annotation = clazz.getAnnotation(Discriminator.class);
         DiscriminatorMapping[] mappings = annotation.map();
 
@@ -206,7 +223,7 @@ public class ConfigurationReader {
 
         if (subclass == null) {
             throw new InvalidConfigurationException(
-                String.format("%s is not a valid value for %s", key, annotation.field())
+                String.format("%s is not a valid value for %s at %s", key, annotation.field(), trace)
             );
         }
 

@@ -1,5 +1,6 @@
 package io.gatekeeper.cli.command;
 
+import io.gatekeeper.InvalidConfigurationException;
 import io.gatekeeper.cli.AbstractCommandWithConfiguration;
 import io.gatekeeper.cli.Input;
 import io.gatekeeper.cli.Output;
@@ -14,6 +15,11 @@ public class AgentCommand extends AbstractCommandWithConfiguration {
 
         try {
             configuration = getConfiguration(input);
+        } catch (InvalidConfigurationException e) {
+            output.println("Could not load configuration");
+            output.println(e.getMessage());
+
+            return;
         } catch (Exception e) {
             output.println("Could not load configuration");
 
@@ -27,6 +33,8 @@ public class AgentCommand extends AbstractCommandWithConfiguration {
 
     @Override
     public void configure() {
+        super.configure();
+
         this.setName("agent");
         this.setDescription("starts and runs the gatekeeper agent");
     }

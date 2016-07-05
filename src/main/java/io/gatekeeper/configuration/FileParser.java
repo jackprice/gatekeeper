@@ -67,6 +67,6 @@ public class FileParser<T extends ConfigurationInterface> {
 
         Map<String, Object> data = (Map<String, Object>) yaml.loadAs(string, Map.class);
 
-        return this.reader.createConfigurationObjectFromData(this.clazz, data);
+        return this.reader.createConfigurationObjectFromData(this.clazz, data, "");
     }
 }

@@ -5,6 +5,7 @@ import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
+import io.gatekeeper.logging.Loggers;
 import io.gatekeeper.node.service.replication.common.Node;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -18,9 +19,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 @SuppressWarnings("HardcodedFileSeparator")
 final public class Client implements Closeable {
+
+    private final Logger logger;
 
     private final String consulHost;
 
@@ -41,6 +45,7 @@ final public class Client implements Closeable {
         String serviceHost,
         Integer servicePort
     ) {
+        this.logger = Loggers.getReplicationLogger();
         this.consulHost = consulHost;
         this.consulPort = consulPort;
         this.serviceName = serviceName;
@@ -137,6 +142,8 @@ final public class Client implements Closeable {
     }
 
     private void doRegisterService() throws Exception {
+        logger.info(String.format("Registering consul service %s on %s:%d", serviceName, serviceHost, servicePort));
+
         JSONObject data = new JSONObject(getServiceDefinition());
 
         HttpResponse<JsonNode> response = doConsulRequest(
@@ -152,12 +159,14 @@ final public class Client implements Closeable {
     }
 
     private void doRegisterCheck() throws Exception {
+        logger.info(String.format("Registering consul check %s:rpc on %s:%d", serviceName, serviceHost, servicePort));
+
         JSONObject data = new JSONObject();
 
         data.put("ID", serviceName + ":rpc");
         data.put("Name", "Gatekeeper RPC port check");
         data.put("ServiceID", serviceName);
-        data.put("TCP", String.format("%s:%s", serviceHost, servicePort));
+        data.put("TCP", String.format("%s:%d", serviceHost, servicePort));
         data.put("Interval", "10s");
         data.put("TTL", "15s");
 

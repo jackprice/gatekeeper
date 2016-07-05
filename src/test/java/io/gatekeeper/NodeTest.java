@@ -49,4 +49,27 @@ public class NodeTest {
 
         assertEquals(service, node.service(Service.class));
     }
+
+    @Test
+    public void testStart() {
+        Configuration configuration = new Configuration();
+
+        Node node = new Node(configuration);
+
+        Service service = new Service() {
+            @Override
+            public CompletableFuture start() {
+                return CompletableFuture.completedFuture(null);
+            }
+
+            @Override
+            public void close() throws IOException {
+
+            }
+        };
+
+        node.service(Service.class, service);
+
+        assertEquals(service, node.service(Service.class));
+    }
 }

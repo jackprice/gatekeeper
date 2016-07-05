@@ -5,6 +5,7 @@ import io.gatekeeper.cli.AbstractCommandWithConfiguration;
 import io.gatekeeper.cli.Input;
 import io.gatekeeper.cli.Output;
 import io.gatekeeper.configuration.Configuration;
+import io.gatekeeper.configuration.data.backend.LocalBackendConfiguration;
 import io.gatekeeper.configuration.data.replication.LocalReplicationConfiguration;
 import io.gatekeeper.node.Node;
 
@@ -31,6 +32,8 @@ public class DevelopCommand extends AbstractCommand {
         configuration.replication = new LocalReplicationConfiguration();
 
         configuration.replication.server = Boolean.TRUE;
+
+        configuration.backend = new LocalBackendConfiguration();
 
         return configuration;
     }

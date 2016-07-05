@@ -55,6 +55,8 @@ public class Node implements Closeable {
         this.executor.execute(() -> {
             this.startServices().join();
 
+            this.logger.info("Node started");
+
             future.complete(null);
         });
 

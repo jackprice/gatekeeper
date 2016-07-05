@@ -35,7 +35,7 @@ public class Router {
         CommandLine line;
 
         try {
-            line = parser.parse(options, args, false);
+            line = parser.parse(options, args, true);
         } catch (ParseException e) {
             System.err.println("Could not parse command-line options - exiting");
 
@@ -44,7 +44,7 @@ public class Router {
             return;
         }
 
-        if (line.getArgList().size() != 1) {
+        if (line.getArgList().size() == 0) {
             printUsage();
 
             return;
