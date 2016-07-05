@@ -5,8 +5,6 @@ import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 import io.gatekeeper.node.service.replication.common.Node;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,11 +35,11 @@ final public class Client implements Closeable {
     private final Executor executor;
 
     public Client(
-        @NotNull String consulHost,
-        @NotNull Integer consulPort,
-        @NotNull String serviceName,
-        @NotNull String serviceHost,
-        @NotNull Integer servicePort
+        String consulHost,
+        Integer consulPort,
+        String serviceName,
+        String serviceHost,
+        Integer servicePort
     ) {
         this.consulHost = consulHost;
         this.consulPort = consulPort;
@@ -245,9 +243,9 @@ final public class Client implements Closeable {
     }
 
     private <T> HttpResponse<T> doConsulRequest(
-        @NotNull HttpMethod method,
-        @NotNull String path,
-        @Nullable JSONObject postData,
+        HttpMethod method,
+        String path,
+        JSONObject postData,
         Class<T> responseClass
     ) throws UnirestException {
         if (postData == null) {
