@@ -10,9 +10,7 @@ import io.gatekeeper.node.service.Service;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -28,7 +26,7 @@ public class Node implements Closeable {
 
     private final Logger logger;
 
-    private final List<Service> services;
+    private final Map<String, Service> services;
 
     private final ThreadPoolExecutor executor;
 
@@ -36,7 +34,7 @@ public class Node implements Closeable {
         this.name = UUID.randomUUID();
         this.configuration = configuration;
         this.logger = Loggers.getNodeLogger();
-        this.services = this.createServices();
+        this.services = new HashMap<>();
         this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
             (new ThreadFactoryBuilder())
                 .setNameFormat("Node %d")
@@ -50,6 +48,8 @@ public class Node implements Closeable {
     public CompletableFuture<Void> start() {
         this.logger.info(String.format("Starting node %s", this.name.toString()));
 
+        this.createServices();
+
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         this.executor.execute(() -> {
@@ -61,12 +61,27 @@ public class Node implements Closeable {
         return future;
     }
 
+    public <T extends Service, U extends Class<T>> void service(U clazz, T implementation) {
+        this.services.put(clazz.getCanonicalName(), implementation);
+    }
+
+    /**
+     * Get a service from the service container by its abstract class.
+     *
+     * @param clazz The abstract class of the service to retrieve
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Service, U extends Class<T>> T service(U clazz) {
+        return (T) this.services.get(clazz.getCanonicalName());
+    }
+
     private CompletableFuture<Void> startServices() {
         this.logger.info("Starting services");
 
-        List<CompletableFuture> futures = services
+        List<CompletableFuture> futures = this.services
+            .entrySet()
             .stream()
-            .map(Service::start)
+            .map(entry -> entry.getValue().start())
             .collect(Collectors.toList());
 
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -76,8 +91,8 @@ public class Node implements Closeable {
     public void close() throws IOException {
         this.logger.info("Stopping services");
 
-        for (Service service : this.services) {
-            service.close();
+        for (Map.Entry<String, Service> entry : this.services.entrySet()) {
+            entry.getValue().close();
         }
 
         this.logger.info(String.format("Shutting down %d node threads", this.executor.getActiveCount()));
@@ -96,11 +111,9 @@ public class Node implements Closeable {
         this.logger.info("Node shutdown complete");
     }
 
-    private List<Service> createServices() {
-        ReplicationService replication = this.createReplicationService();
-        BackendService backend = this.createBackendService();
-
-        return Arrays.asList(replication, backend);
+    private void createServices() {
+        this.service(ReplicationService.class, createReplicationService());
+        this.service(BackendService.class, createBackendService());
     }
 
     @SuppressWarnings("unchecked")
