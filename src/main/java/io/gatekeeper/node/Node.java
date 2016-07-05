@@ -100,9 +100,8 @@ public class Node implements Closeable {
     private List<Service> createServices() {
         ReplicationService replication = this.createReplicationService();
         BackendService backend = this.createBackendService();
-        ApiService api = new ApiService(this.configuration, replication);
 
-        return Arrays.asList(replication, backend, api);
+        return Arrays.asList(replication, backend);
     }
 
     @SuppressWarnings("unchecked")
