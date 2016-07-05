@@ -5,6 +5,7 @@ import com.mashape.unirest.http.*;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.mashape.unirest.request.HttpRequest;
 import com.mashape.unirest.request.HttpRequestWithBody;
+import io.gatekeeper.Version;
 import io.gatekeeper.logging.Loggers;
 import io.gatekeeper.node.service.replication.common.Node;
 import org.json.JSONArray;
@@ -116,7 +117,7 @@ final public class Client implements Closeable {
     private List<Node> doGetNodes() throws Exception {
         HttpResponse<JsonNode> response = doConsulRequest(
             HttpMethod.GET,
-            "v1/catalog/service/" + serviceName,
+            String.format("v1/catalog/service/%s?tag=%s", serviceName, Version.CURRENT.minimumCompatibibleVersion().toString()),
             null,
             JsonNode.class
         );
@@ -166,7 +167,7 @@ final public class Client implements Closeable {
         data.put("ID", serviceName + ":api");
         data.put("Name", "Gatekeeper API port check");
         data.put("ServiceID", serviceName);
-        data.put("HTTP", String.format("http://%s:%d", serviceHost, servicePort));
+        data.put("HTTP", String.format("http://%s:%d/api/version", serviceHost, servicePort));
         data.put("Interval", "10s");
         data.put("TTL", "15s");
 
@@ -185,14 +186,18 @@ final public class Client implements Closeable {
     private Map<String, Object> getServiceDefinition() {
         Map<String, Object> service = new HashMap<>();
         Map<String, Object> check = new HashMap<>();
+        List<String> tags = new ArrayList<>();
 
-        check.put("TCP", String.format("%s:%s", serviceHost, servicePort));
+        check.put("HTTP", String.format("http://%s:%s/api/version", serviceHost, servicePort));
+
+        tags.add(Version.CURRENT.minimumCompatibibleVersion().toString());
 
         service.put("ID", serviceName);
         service.put("Name", serviceName);
         service.put("Address", serviceHost);
         service.put("Port", servicePort);
         service.put("Check", check);
+        service.put("Tags", tags);
 
         return service;
     }
