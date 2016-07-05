@@ -4,5 +4,6 @@
 replication:
   type: local
   server: true
-  rpc_address: 10.6.1.1
-  rpc_port: 4321
+api:
+  address: 10.6.1.1
+  port: 4321

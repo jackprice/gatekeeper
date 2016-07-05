@@ -20,8 +20,8 @@ public class DirectoryParserTest {
         Configuration configuration = parser.parse();
 
         assertEquals(true, configuration.replication.server);
-        assertEquals("10.6.1.1", configuration.replication.rpcAddress);
-        assertEquals((long) 4321, (long) configuration.replication.rpcPort);
+        assertEquals("10.6.1.1", configuration.api.address);
+        assertEquals((long) 4321, (long) configuration.api.port);
         assertEquals(configuration.replication.getClass(), LocalReplicationConfiguration.class);
     }
 

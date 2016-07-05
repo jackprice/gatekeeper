@@ -4,5 +4,6 @@
 replication:
   type: local
   server: true
-  rpc_address: 127.0.0.1
-  rpc_port: 1234
+api:
+  address: 127.0.0.1
+  port: 1234

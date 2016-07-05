@@ -30,8 +30,8 @@ public class LocalReplicationService extends ReplicationService<LocalReplication
     public CompletableFuture<List<Node>> fetchNodes() {
         return CompletableFuture.completedFuture(Collections.singletonList(new Node(
             "local",
-            replicationConfiguration.rpcAddress,
-            replicationConfiguration.rpcPort
+            configuration.api.address,
+            configuration.api.port
         )));
     }
 

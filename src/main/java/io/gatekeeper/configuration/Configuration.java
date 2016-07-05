@@ -2,6 +2,7 @@ package io.gatekeeper.configuration;
 
 import io.gatekeeper.InvalidConfigurationException;
 import io.gatekeeper.configuration.annotation.Config;
+import io.gatekeeper.configuration.data.ApiConfiguration;
 import io.gatekeeper.configuration.data.BackendConfiguration;
 import io.gatekeeper.configuration.data.ProviderConfiguration;
 import io.gatekeeper.configuration.data.ReplicationConfiguration;
@@ -13,6 +14,9 @@ public class Configuration implements ConfigurationInterface<Configuration> {
 
     @Config(name = "replication", type = ReplicationConfiguration.class)
     public ReplicationConfiguration replication;
+
+    @Config(name = "api", type = ApiConfiguration.class)
+    public ApiConfiguration api = new ApiConfiguration();
 
     @Config(name = "backend", type = BackendConfiguration.class)
     public BackendConfiguration backend;
@@ -33,6 +37,7 @@ public class Configuration implements ConfigurationInterface<Configuration> {
         }
 
         this.replication.validate();
+        this.api.validate();
         this.backend.validate();
         this.providers.forEach(ConfigurationInterface::validate);
     }
@@ -51,6 +56,8 @@ public class Configuration implements ConfigurationInterface<Configuration> {
 
             this.replication.merge(configuration.replication);
         }
+
+        this.api.merge(configuration.api);
 
         if (this.backend == null) {
             this.backend = configuration.backend;

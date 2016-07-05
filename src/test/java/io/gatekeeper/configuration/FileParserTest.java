@@ -21,8 +21,8 @@ public class FileParserTest {
         Configuration configuration = parser.parse();
 
         assertEquals(true, configuration.replication.server);
-        assertEquals("127.0.0.1", configuration.replication.rpcAddress);
-        assertEquals((long) 1234, (long) configuration.replication.rpcPort);
+        assertEquals("127.0.0.1", configuration.api.address);
+        assertEquals((long) 1234, (long) configuration.api.port);
         assertEquals(configuration.replication.getClass(), LocalReplicationConfiguration.class);
     }
 
@@ -36,8 +36,8 @@ public class FileParserTest {
         Configuration configuration = parser.parse();
 
         assertEquals(true, configuration.replication.server);
-        assertEquals("10.6.1.1", configuration.replication.rpcAddress);
-        assertEquals((long) 4321, (long) configuration.replication.rpcPort);
+        assertEquals("10.6.1.1", configuration.api.address);
+        assertEquals((long) 4321, (long) configuration.api.port);
         assertEquals(configuration.replication.getClass(), LocalReplicationConfiguration.class);
     }
 }

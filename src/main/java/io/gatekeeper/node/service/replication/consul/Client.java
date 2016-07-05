@@ -163,10 +163,10 @@ final public class Client implements Closeable {
 
         JSONObject data = new JSONObject();
 
-        data.put("ID", serviceName + ":rpc");
-        data.put("Name", "Gatekeeper RPC port check");
+        data.put("ID", serviceName + ":api");
+        data.put("Name", "Gatekeeper API port check");
         data.put("ServiceID", serviceName);
-        data.put("TCP", String.format("%s:%d", serviceHost, servicePort));
+        data.put("HTTP", String.format("http://%s:%d", serviceHost, servicePort));
         data.put("Interval", "10s");
         data.put("TTL", "15s");
 
