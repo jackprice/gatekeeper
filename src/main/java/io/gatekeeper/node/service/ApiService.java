@@ -87,6 +87,8 @@ public class ApiService implements Service {
     private <T extends AbstractController, U extends Class<T>> void handle(RoutingContext context, U clazz) {
         T controller;
 
+        context.response().putHeader("Access-Control-Allow-Origin", "*");
+
         try {
             controller = instantiateController(clazz);
         } catch (Exception exception) {
