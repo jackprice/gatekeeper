@@ -1,11 +1,19 @@
 package io.gatekeeper.node.service.replication.common;
 
-import org.json.JSONObject;
 
-public class ReplicationInformation extends JSONObject {
+import java.util.Map;
 
-    public ReplicationInformation(String type, Integer nodes) {
-        put("type", type);
-        put("nodes", nodes);
+public class ReplicationInformation {
+
+    public final String type;
+
+    public final Integer nodes;
+
+    public final Map<String, Object> extra;
+
+    public ReplicationInformation(String type, Integer nodes, Map<String, Object> extra) {
+        this.type = type;
+        this.nodes = nodes;
+        this.extra = extra;
     }
 }

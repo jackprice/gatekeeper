@@ -133,18 +133,17 @@ public class ConsulReplicationService extends ReplicationService<ConsulReplicati
 
         executor.execute(() -> {
             try {
-                ReplicationInformation information = new ReplicationInformation(
-                    "consul",
-                    countNodes().get()
-                );
-
-                JSONObject consulInformation = new JSONObject();
+                Map<String, Object> consulInformation = new HashMap<>();
 
                 consulInformation.put("host", replicationConfiguration.host);
                 consulInformation.put("port", replicationConfiguration.port);
                 consulInformation.put("service", replicationConfiguration.service);
 
-                information.put("consul", consulInformation);
+                ReplicationInformation information = new ReplicationInformation(
+                    "consul",
+                    countNodes().get(),
+                    consulInformation
+                );
 
                 future.complete(information);
             } catch (Exception exception) {

@@ -2,6 +2,7 @@ package io.gatekeeper.node.service;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.api.AbstractController;
+import io.gatekeeper.api.controller.GetReplicationInfo;
 import io.gatekeeper.api.controller.GetVersion;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
@@ -82,6 +83,7 @@ public class ApiService implements Service {
 
     private void configureRouter() {
         router.route(HttpMethod.GET, "/api/version").handler((context) -> handle(context, GetVersion.class));
+        router.route(HttpMethod.GET, "/api/replication/info").handler((context) -> handle(context, GetReplicationInfo.class));
     }
 
     private <T extends AbstractController, U extends Class<T>> void handle(RoutingContext context, U clazz) {

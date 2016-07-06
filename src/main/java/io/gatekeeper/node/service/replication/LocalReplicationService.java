@@ -71,7 +71,8 @@ public class LocalReplicationService extends ReplicationService<LocalReplication
     public CompletableFuture<ReplicationInformation> getInformation() {
         return CompletableFuture.completedFuture(new ReplicationInformation(
             "local",
-            1
+            1,
+            new HashMap<>()
         ));
     }
 

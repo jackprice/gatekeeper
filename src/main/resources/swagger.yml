@@ -1,7 +1,6 @@
 swagger: '2.0'
 info:
   title: Gatekeeper API
-  description: Move your app forward with the Uber API
   version: "0.0.0"
 host: localhost:8123
 schemes:
@@ -11,7 +10,6 @@ basePath: /api
 produces:
   - application/json
 paths:
-
   /version:
     get:
       summary: Gatekeeper version overview
@@ -20,9 +18,19 @@ paths:
         Note that the least-significant portion of the version string may differ from request to request as a new cluster leader may have been elected.
       responses:
         200:
-          description: Gatekeeper version information
+          description: Version information
           schema:
             $ref: '#/definitions/Version'
+  /replication/info:
+    get:
+      summary: Replication status overview
+      description: |
+        The replication info endpoint returns an overview of the current replication state.
+      responses:
+        200:
+          description: Replication status
+          schema:
+            $ref: '#/definitions/ReplicationStatus'
 
 definitions:
   Version:
@@ -40,3 +48,15 @@ definitions:
       revision:
         type: integer
         description: The revision number of this release
+  ReplicationStatus:
+    type: object
+    properties:
+      type:
+        type: string
+        description: The type of replication being used
+      nodes:
+        type: integer
+        description: The number of nodes (including this one) in the cluster
+      extra:
+        type: object
+        description: Additional information about replication on a per-provider basis
