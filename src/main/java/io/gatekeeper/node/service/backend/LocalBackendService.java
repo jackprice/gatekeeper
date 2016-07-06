@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class LocalBackendService extends BackendService<LocalBackendConfiguration> {
 
-    public LocalBackendService(Configuration configuration, ReplicationService replication) {
+    public LocalBackendService(Configuration configuration, ReplicationService replication) throws Exception {
         super(configuration, replication);
     }
 

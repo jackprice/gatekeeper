@@ -17,5 +17,8 @@ import io.gatekeeper.node.service.BackendService;
 public abstract class BackendConfiguration<T extends ConfigurationInterface, U extends BackendService>
     implements ConfigurationInterface<T> {
 
+    @Config(name = "key", type = String.class)
+    public String key;
+
     public abstract Class<U> serviceClass();
 }
