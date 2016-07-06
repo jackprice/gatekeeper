@@ -27,7 +27,7 @@ public class Node implements Closeable {
 
     private final Logger logger;
 
-    private final Map<String, Service> services;
+    private final ServiceContainer services = new ServiceContainer();
 
     private final ThreadPoolExecutor executor;
 
@@ -37,7 +37,6 @@ public class Node implements Closeable {
         this.name = UUID.randomUUID();
         this.configuration = configuration;
         this.logger = Loggers.getNodeLogger();
-        this.services = new HashMap<>();
         this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
             (new ThreadFactoryBuilder())
                 .setNameFormat("Node %d")
@@ -64,28 +63,6 @@ public class Node implements Closeable {
         });
 
         return future;
-    }
-
-    public <T extends Service, U extends Class<T>> void service(U clazz, T implementation) {
-        assert null != clazz;
-        assert Service.class.isAssignableFrom(clazz);
-        assert null != implementation;
-        assert clazz.isAssignableFrom(implementation.getClass());
-
-        this.services.put(clazz.getCanonicalName(), implementation);
-    }
-
-    /**
-     * Get a service from the service container by its abstract class.
-     *
-     * @param clazz The abstract class of the service to retrieve
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends Service, U extends Class<T>> T service(U clazz) {
-        assert null != clazz;
-        assert Service.class.isAssignableFrom(clazz);
-
-        return (T) this.services.get(clazz.getCanonicalName());
     }
 
     private CompletableFuture<Void> startServices() {
@@ -133,11 +110,11 @@ public class Node implements Closeable {
     }
 
     private void createServices() {
-        service(ReplicationService.class, createReplicationService());
-        service(BackendService.class, createBackendService());
+        services.service(ReplicationService.class, createReplicationService());
+        services.service(BackendService.class, createBackendService());
 
         if (configuration.replication.server) {
-            this.service(ApiService.class, new ApiService(configuration));
+            services.service(ApiService.class, createApiService());
         }
     }
 
@@ -173,6 +150,11 @@ public class Node implements Closeable {
                 exception
             );
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private ApiService createApiService() {
+        return new ApiService(configuration, services);
     }
 
 }

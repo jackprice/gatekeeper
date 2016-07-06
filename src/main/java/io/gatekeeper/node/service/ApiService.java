@@ -2,9 +2,11 @@ package io.gatekeeper.node.service;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.api.AbstractController;
+import io.gatekeeper.api.InfoController;
 import io.gatekeeper.api.VersionController;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
+import io.gatekeeper.node.ServiceContainer;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -12,6 +14,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -32,7 +36,10 @@ public class ApiService implements Service {
 
     private final Router router;
 
-    public ApiService(Configuration configuration) {
+    private final ServiceContainer container;
+
+    public ApiService(Configuration configuration, ServiceContainer container) {
+        this.container = container;
         this.logger = Loggers.getApiLogger();
         this.configuration = configuration;
         this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
@@ -76,6 +83,7 @@ public class ApiService implements Service {
 
     private void configureRouter() {
         router.route(HttpMethod.GET, "/api/version").handler((context) -> handle(context, VersionController.class));
+        router.route(HttpMethod.GET, "/api/info").handler((context) -> handle(context, InfoController.class));
     }
 
     private <T extends AbstractController, U extends Class<T>> void handle(RoutingContext context, U clazz) {
@@ -91,8 +99,12 @@ public class ApiService implements Service {
     }
 
     private <Controller, ControllerClass extends Class<Controller>> Controller instantiateController(ControllerClass clazz)
-        throws IllegalAccessException, InstantiationException {
-        return clazz.newInstance();
+        throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        assert null != clazz;
+
+        Constructor<Controller> constructor = clazz.getConstructor(ServiceContainer.class);
+
+        return constructor.newInstance(container);
     }
 
     @Override
