@@ -1,0 +1,33 @@
+swagger: '2.0'
+info:
+  title: Gatekeeper API
+  description: Move your app forward with the Uber API
+  version: "0.0.0"
+host: localhost:8123
+schemes:
+  - http
+  - https
+basePath: /api
+produces:
+  - application/json
+paths:
+
+  /version:
+    get:
+      summary: Gatekeeper version overview
+      description: |
+        The version endpoint returns the version of the gatekeeper instance running as the current cluster leader.<br>
+        Note that the least-significant portion of the version string may differ from request to request as a new cluster leader may have been elected.
+      responses:
+        200:
+          description: Gatekeeper version information
+          schema:
+            $ref: '#/definitions/Version'
+
+definitions:
+  Version:
+    type: object
+    properties:
+      version:
+        type: string
+        description: A textual representation of a gatekeeper version
