@@ -2,6 +2,7 @@ package io.gatekeeper.node.service;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.configuration.Configuration;
+import io.gatekeeper.configuration.data.BackendConfiguration;
 import io.gatekeeper.logging.Loggers;
 
 import java.io.IOException;
@@ -11,18 +12,25 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-public abstract class BackendService implements Service {
+public abstract class BackendService<BackendConfigurationType extends BackendConfiguration> implements Service {
 
-    private final Configuration configuration;
+    protected final BackendConfigurationType backendConfiguration;
 
-    private final Logger logger;
+    protected final Configuration configuration;
+
+    protected final Logger logger;
 
     protected final ThreadPoolExecutor executor;
 
-    public BackendService(Configuration configuration) {
+    protected final ReplicationService replication;
+
+    public BackendService(Configuration configuration, ReplicationService replication) {
         assert null != configuration;
+        assert null != replication;
 
         this.configuration = configuration;
+        this.backendConfiguration = (BackendConfigurationType) configuration.backend;
+        this.replication = replication;
         this.logger = Loggers.getBackendLogger();
         this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
             (new ThreadFactoryBuilder())
@@ -32,10 +40,6 @@ public abstract class BackendService implements Service {
 
         this.executor.prestartCoreThread();
         this.executor.prestartAllCoreThreads();
-    }
-
-    public CompletableFuture start() {
-        return CompletableFuture.completedFuture(null);
     }
 
     @Override

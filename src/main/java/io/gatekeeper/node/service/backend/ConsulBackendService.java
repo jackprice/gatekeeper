@@ -7,15 +7,15 @@ import io.gatekeeper.node.service.ReplicationService;
 
 import java.util.concurrent.CompletableFuture;
 
-public class LocalBackendService extends BackendService<LocalBackendConfiguration> {
+public class ConsulBackendService extends BackendService<LocalBackendConfiguration> {
 
-    public LocalBackendService(Configuration configuration, ReplicationService replication) {
+    public ConsulBackendService(Configuration configuration, ReplicationService replication) {
         super(configuration, replication);
     }
 
     @Override
     public CompletableFuture start() {
-        logger.info("Starting local backend service");
+        logger.info("Starting consul backend service");
 
         return CompletableFuture.completedFuture(null);
     }

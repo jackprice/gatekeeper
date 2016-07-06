@@ -12,9 +12,6 @@ import java.util.List;
 public class ConsulReplicationConfiguration
     extends ReplicationConfiguration<ConsulReplicationConfiguration, ConsulReplicationService> {
 
-    @Config(name = "prefix", type = String.class)
-    public String prefix = "gatekeeper";
-
     @Config(name = "service", type = String.class)
     public String service = "gatekeeper";
 
@@ -32,10 +29,6 @@ public class ConsulReplicationConfiguration
 
     @Override
     public void validate() throws InvalidConfigurationException {
-        if (this.prefix == null || this.prefix.length() == 0) {
-            throw new InvalidConfigurationException("Invalid consul prefix");
-        }
-
         if (this.service == null || this.service.length() == 0) {
             throw new InvalidConfigurationException("Invalid consul service name");
         }
@@ -45,7 +38,6 @@ public class ConsulReplicationConfiguration
     public void merge(ConsulReplicationConfiguration configuration) {
         super.merge((ReplicationConfiguration) configuration);
 
-        this.prefix = configuration.prefix;
         this.service = configuration.service;
         this.port = configuration.port;
         this.host = configuration.host;

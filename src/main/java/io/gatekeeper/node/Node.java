@@ -111,9 +111,9 @@ public class Node implements Closeable {
 
     private void createServices() {
         services.service(ReplicationService.class, createReplicationService());
-        services.service(BackendService.class, createBackendService());
 
         if (configuration.replication.server) {
+            services.service(BackendService.class, createBackendService());
             services.service(ApiService.class, createApiService());
         }
     }
@@ -143,7 +143,8 @@ public class Node implements Closeable {
         assert BackendService.class.isAssignableFrom(clazz);
 
         try {
-            return clazz.getConstructor(Configuration.class).newInstance(this.configuration);
+            return clazz.getConstructor(Configuration.class, ReplicationService.class)
+                .newInstance(this.configuration, services.service(ReplicationService.class));
         } catch (Exception exception) {
             throw new GatekeeperException(
                 String.format("Failed to create backend service %s", clazz.getCanonicalName()),
