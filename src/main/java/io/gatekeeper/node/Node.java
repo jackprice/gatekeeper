@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.GatekeeperException;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
+import io.gatekeeper.node.service.ApiService;
 import io.gatekeeper.node.service.BackendService;
 import io.gatekeeper.node.service.ReplicationService;
 import io.gatekeeper.node.service.Service;
@@ -134,6 +135,10 @@ public class Node implements Closeable {
     private void createServices() {
         service(ReplicationService.class, createReplicationService());
         service(BackendService.class, createBackendService());
+
+        if (configuration.replication.server) {
+            this.service(ApiService.class, new ApiService(configuration));
+        }
     }
 
     @SuppressWarnings("unchecked")
