@@ -37,6 +37,8 @@ final public class Client implements Closeable {
 
     private final Integer servicePort;
 
+    private final String token;
+
     private final Executor executor;
 
     public Client(
@@ -44,7 +46,8 @@ final public class Client implements Closeable {
         Integer consulPort,
         String serviceName,
         String serviceHost,
-        Integer servicePort
+        Integer servicePort,
+        String token
     ) {
         this.logger = Loggers.getReplicationLogger();
         this.consulHost = consulHost;
@@ -52,6 +55,7 @@ final public class Client implements Closeable {
         this.serviceName = serviceName;
         this.serviceHost = serviceHost;
         this.servicePort = servicePort;
+        this.token = token;
 
         this.executor = Executors.newSingleThreadExecutor(
             (new ThreadFactoryBuilder())
@@ -262,17 +266,22 @@ final public class Client implements Closeable {
         JSONObject postData,
         Class<T> responseClass
     ) throws UnirestException {
+        HttpRequest request;
+
         if (postData == null) {
-            return HttpClientHelper.request(
-                new HttpRequest(method, makeConsulUrl(path)),
-                responseClass
-            );
+            request = new HttpRequest(method, makeConsulUrl(path));
         } else {
-            return HttpClientHelper.request(
-                new HttpRequestWithBody(method, makeConsulUrl(path)).body(postData).getHttpRequest(),
-                responseClass
-            );
+            request = new HttpRequestWithBody(method, makeConsulUrl(path)).body(postData).getHttpRequest();
         }
+
+        if (token != null) {
+            request.header("X-Consul-Token", token);
+        }
+
+        return HttpClientHelper.request(
+            request,
+            responseClass
+        );
     }
 
     private String makeConsulUrl(String path) {

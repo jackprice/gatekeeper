@@ -31,7 +31,8 @@ public class ConsulReplicationService extends ReplicationService<ConsulReplicati
             this.replicationConfiguration.port,
             this.replicationConfiguration.service,
             this.configuration.api.address,
-            this.configuration.api.port
+            this.configuration.api.port,
+            this.replicationConfiguration.token
         );
     }
 
