@@ -4,6 +4,7 @@ import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.replication.LocalReplicationConfiguration;
 import io.gatekeeper.node.service.ReplicationService;
 import io.gatekeeper.node.service.replication.common.Node;
+import io.gatekeeper.node.service.replication.common.ReplicationInformation;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -64,6 +65,14 @@ public class LocalReplicationService extends ReplicationService<LocalReplication
                 semaphores.get(name).release();
             }
         }
+    }
+
+    @Override
+    public CompletableFuture<ReplicationInformation> getInformation() {
+        return CompletableFuture.completedFuture(new ReplicationInformation(
+            "local",
+            1
+        ));
     }
 
     @Override

@@ -5,8 +5,10 @@ import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.replication.ConsulReplicationConfiguration;
 import io.gatekeeper.node.service.ReplicationService;
 import io.gatekeeper.node.service.replication.common.Node;
+import io.gatekeeper.node.service.replication.common.ReplicationInformation;
 import io.gatekeeper.node.service.replication.consul.Client;
 import io.gatekeeper.node.service.replication.consul.Lock;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -123,6 +125,34 @@ public class ConsulReplicationService extends ReplicationService<ConsulReplicati
                 throw new InterruptedException("Could not release lock");
             }
         }
+    }
+
+    @Override
+    public CompletableFuture<ReplicationInformation> getInformation() {
+        CompletableFuture<ReplicationInformation> future = new CompletableFuture<>();
+
+        executor.execute(() -> {
+            try {
+                ReplicationInformation information = new ReplicationInformation(
+                    "consul",
+                    countNodes().get()
+                );
+
+                JSONObject consulInformation = new JSONObject();
+
+                consulInformation.put("host", replicationConfiguration.host);
+                consulInformation.put("port", replicationConfiguration.port);
+                consulInformation.put("service", replicationConfiguration.service);
+
+                information.put("consul", consulInformation);
+
+                future.complete(information);
+            } catch (Exception exception) {
+                future.completeExceptionally(exception);
+            }
+        });
+
+        return future;
     }
 
     @Override

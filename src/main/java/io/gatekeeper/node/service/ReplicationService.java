@@ -5,6 +5,7 @@ import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.ReplicationConfiguration;
 import io.gatekeeper.logging.Loggers;
 import io.gatekeeper.node.service.replication.common.Node;
+import io.gatekeeper.node.service.replication.common.ReplicationInformation;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,6 +47,8 @@ public abstract class ReplicationService<ReplicationConfigurationType extends Re
     public abstract void lock(String name) throws InterruptedException;
 
     public abstract void unlock(String name) throws InterruptedException;
+
+    public abstract CompletableFuture<ReplicationInformation> getInformation();
 
     @Override
     public void close() throws IOException {
