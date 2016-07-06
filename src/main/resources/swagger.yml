@@ -31,3 +31,12 @@ definitions:
       version:
         type: string
         description: A textual representation of a gatekeeper version
+      major:
+        type: integer
+        description: The major release of this version
+      minor:
+        type: integer
+        description: The minor release of this version
+      revision:
+        type: integer
+        description: The revision number of this release

@@ -15,6 +15,13 @@ public class GetVersion extends AbstractController {
 
     @Override
     protected Object handle(HttpServerRequest request) throws Exception {
-        return (new Version()).version(CURRENT.toString());
+        Version version = new Version();
+
+        version.version(CURRENT.toString())
+            .major((int) CURRENT.major)
+            .minor((int) CURRENT.minor)
+            .revision((int) CURRENT.revision);
+
+        return version;
     }
 }
