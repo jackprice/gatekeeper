@@ -18,12 +18,28 @@ public abstract class AbstractController {
     }
 
     public void handle(RoutingContext context) {
-        JSONObject data = handle(context.request());
+        JSONObject data;
+
+        try {
+            data = handle(context.request());
+        } catch (Exception exception) {
+            context.response().setStatusCode(500);
+            context.response().putHeader("content-type", ContentType.APPLICATION_JSON.toString());
+
+            data = new JSONObject();
+
+            data.put("exception", exception.getClass().getCanonicalName());
+            data.put("message", exception.getMessage());
+
+            context.response().end(data.toString(4));
+
+            return;
+        }
 
         context.response().putHeader("content-type", ContentType.APPLICATION_JSON.toString());
 
         context.response().end(data.toString(4));
     }
 
-    protected abstract JSONObject handle(HttpServerRequest request);
+    protected abstract JSONObject handle(HttpServerRequest request) throws Exception;
 }
