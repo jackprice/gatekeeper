@@ -22,6 +22,8 @@ public abstract class ReplicationService<ReplicationConfigurationType extends Re
     protected final ThreadPoolExecutor executor;
 
     public ReplicationService(Configuration configuration) {
+        assert null != configuration;
+
         this.configuration = configuration;
         this.replicationConfiguration = (ReplicationConfigurationType) configuration.replication;
         this.logger = Loggers.getReplicationLogger();
@@ -40,6 +42,10 @@ public abstract class ReplicationService<ReplicationConfigurationType extends Re
     public abstract CompletableFuture<Integer> countNodes();
 
     public abstract CompletableFuture<List<Node>> fetchNodes();
+
+    public abstract void lock(String name) throws InterruptedException;
+
+    public abstract void unlock(String name) throws InterruptedException;
 
     @Override
     public void close() throws IOException {

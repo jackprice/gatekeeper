@@ -20,6 +20,8 @@ public abstract class BackendService implements Service {
     protected final ThreadPoolExecutor executor;
 
     public BackendService(Configuration configuration) {
+        assert null != configuration;
+
         this.configuration = configuration;
         this.logger = Loggers.getBackendLogger();
         this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(

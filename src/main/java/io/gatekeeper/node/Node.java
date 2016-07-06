@@ -31,6 +31,8 @@ public class Node implements Closeable {
     private final ThreadPoolExecutor executor;
 
     public Node(Configuration configuration) {
+        assert null != configuration;
+
         this.name = UUID.randomUUID();
         this.configuration = configuration;
         this.logger = Loggers.getNodeLogger();
@@ -64,6 +66,11 @@ public class Node implements Closeable {
     }
 
     public <T extends Service, U extends Class<T>> void service(U clazz, T implementation) {
+        assert null != clazz;
+        assert Service.class.isAssignableFrom(clazz);
+        assert null != implementation;
+        assert clazz.isAssignableFrom(implementation.getClass());
+
         this.services.put(clazz.getCanonicalName(), implementation);
     }
 
@@ -74,6 +81,9 @@ public class Node implements Closeable {
      */
     @SuppressWarnings("unchecked")
     public <T extends Service, U extends Class<T>> T service(U clazz) {
+        assert null != clazz;
+        assert Service.class.isAssignableFrom(clazz);
+
         return (T) this.services.get(clazz.getCanonicalName());
     }
 
@@ -93,9 +103,17 @@ public class Node implements Closeable {
     public void close() throws IOException {
         this.logger.info("Stopping services");
 
+        List<Exception> exceptions = new ArrayList<>();
+
         for (Map.Entry<String, Service> entry : this.services.entrySet()) {
-            entry.getValue().close();
+            try {
+                entry.getValue().close();
+            } catch (Exception exception) {
+                exceptions.add(exception);
+            }
         }
+
+        // TODO: Report exceptions
 
         this.logger.info(String.format("Shutting down %d node threads", this.executor.getActiveCount()));
 
@@ -114,13 +132,16 @@ public class Node implements Closeable {
     }
 
     private void createServices() {
-        this.service(ReplicationService.class, createReplicationService());
-        this.service(BackendService.class, createBackendService());
+        service(ReplicationService.class, createReplicationService());
+        service(BackendService.class, createBackendService());
     }
 
     @SuppressWarnings("unchecked")
     private ReplicationService createReplicationService() {
         Class<ReplicationService> clazz = (Class<ReplicationService>) this.configuration.replication.serviceClass();
+
+        assert null != clazz;
+        assert ReplicationService.class.isAssignableFrom(clazz);
 
         try {
             return clazz.getConstructor(Configuration.class).newInstance(this.configuration);
@@ -135,6 +156,9 @@ public class Node implements Closeable {
     @SuppressWarnings("unchecked")
     private BackendService createBackendService() {
         Class<BackendService> clazz = (Class<BackendService>) this.configuration.backend.serviceClass();
+
+        assert null != clazz;
+        assert BackendService.class.isAssignableFrom(clazz);
 
         try {
             return clazz.getConstructor(Configuration.class).newInstance(this.configuration);

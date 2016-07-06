@@ -17,9 +17,11 @@ public class Router {
         this.commands = new HashMap<>();
     }
 
-    public <T extends AbstractCommand> Router addCommand(Class<T> clazz) throws
-        IllegalAccessException,
-        InstantiationException {
+    public <T extends AbstractCommand> Router addCommand(Class<T> clazz)
+        throws IllegalAccessException, InstantiationException {
+        assert null != clazz;
+        assert clazz.isAssignableFrom(AbstractCommand.class);
+
         AbstractCommand instance = clazz.newInstance();
 
         instance.configure();
@@ -30,6 +32,8 @@ public class Router {
     }
 
     public void execute(String[] args) {
+        assert null != args;
+
         Options options = new Options();
         CommandLineParser parser = new DefaultParser();
         CommandLine line;

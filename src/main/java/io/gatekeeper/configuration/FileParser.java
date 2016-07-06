@@ -26,6 +26,10 @@ public class FileParser<T extends ConfigurationInterface> {
      * @param path  The path to the config file
      */
     public FileParser(Class<T> clazz, String path) {
+        assert null != clazz;
+        assert ConfigurationInterface.class.isAssignableFrom(clazz);
+        assert null != path;
+
         this.clazz = clazz;
         this.path = path;
     }
@@ -37,6 +41,8 @@ public class FileParser<T extends ConfigurationInterface> {
      */
     public T parse() throws IOException, InstantiationException, IllegalAccessException {
         String yaml = this.read();
+
+        assert null != yaml;
 
         return this.parseYaml(yaml);
     }
@@ -66,6 +72,8 @@ public class FileParser<T extends ConfigurationInterface> {
         Yaml yaml = new Yaml();
 
         Map<String, Object> data = (Map<String, Object>) yaml.loadAs(string, Map.class);
+
+        assert null != data;
 
         return this.reader.createConfigurationObjectFromData(this.clazz, data, "");
     }

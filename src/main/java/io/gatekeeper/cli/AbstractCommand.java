@@ -15,6 +15,9 @@ public abstract class AbstractCommand {
     public abstract void configure();
 
     public void setName(String name) {
+        assert null != name;
+        assert name.length() > 0;
+
         this.name = name;
     }
 
@@ -31,14 +34,23 @@ public abstract class AbstractCommand {
     }
 
     public void setDescription(String description) {
+        assert null != description;
+        assert description.length() > 0;
+
         this.description = description;
     }
 
     public void withFlag(String name) {
+        assert null != name;
+        assert name.length() > 0;
+
         options.addOption(null, name, false, null);
     }
 
     public void withOption(String name) {
+        assert null != name;
+        assert name.length() > 0;
+
         options.addOption(null, name, true, null);
     }
 

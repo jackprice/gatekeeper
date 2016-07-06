@@ -23,23 +23,23 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 @SuppressWarnings("HardcodedFileSeparator")
-final public class Client implements Closeable {
+public class Client implements Closeable {
 
-    private final Logger logger;
+    protected final Logger logger;
 
-    private final String consulHost;
+    protected final String consulHost;
 
-    private final Integer consulPort;
+    protected final Integer consulPort;
 
-    private final String serviceName;
+    protected final String serviceName;
 
-    private final String serviceHost;
+    protected final String serviceHost;
 
-    private final Integer servicePort;
+    protected final Integer servicePort;
 
-    private final String token;
+    protected final String token;
 
-    private final Executor executor;
+    protected final Executor executor;
 
     public Client(
         String consulHost,
@@ -49,6 +49,12 @@ final public class Client implements Closeable {
         Integer servicePort,
         String token
     ) {
+        assert null != consulHost;
+        assert null != consulPort;
+        assert null != serviceName;
+        assert null != serviceHost;
+        assert null != servicePort;
+
         this.logger = Loggers.getReplicationLogger();
         this.consulHost = consulHost;
         this.consulPort = consulPort;
@@ -65,6 +71,9 @@ final public class Client implements Closeable {
     }
 
     public CompletableFuture<Lock> lock(String name) {
+        assert null != name;
+        assert name.length() > 0;
+
         CompletableFuture<Lock> future = new CompletableFuture<>();
 
         this.executor.execute(() -> {
@@ -207,6 +216,9 @@ final public class Client implements Closeable {
     }
 
     private Lock doLock(String name) throws Exception {
+        assert null != name;
+        assert name.length() > 0;
+
         String session = createSession();
 
         JSONObject data = new JSONObject();
@@ -242,6 +254,9 @@ final public class Client implements Closeable {
     }
 
     private void releaseSession(String session) throws Exception {
+        assert null != session;
+        assert session.length() > 0;
+
         JSONObject data = new JSONObject();
 
         HttpResponse<JsonNode> response = doConsulRequest(
@@ -257,15 +272,21 @@ final public class Client implements Closeable {
     }
 
     void unlock(Lock lock) throws Exception {
+        assert null != lock;
+
         releaseSession(lock.session);
     }
 
-    private <T> HttpResponse<T> doConsulRequest(
+    protected <T> HttpResponse<T> doConsulRequest(
         HttpMethod method,
         String path,
         JSONObject postData,
         Class<T> responseClass
     ) throws UnirestException {
+        assert null != method;
+        assert null != path;
+        assert null != responseClass;
+
         HttpRequest request;
 
         if (postData == null) {
@@ -285,6 +306,8 @@ final public class Client implements Closeable {
     }
 
     private String makeConsulUrl(String path) {
+        assert null != path;
+
         return String.format("http://%s:%s/%s", consulHost, consulPort, path);
     }
 

@@ -44,6 +44,8 @@ public class Configuration implements ConfigurationInterface<Configuration> {
 
     @Override
     public void merge(Configuration configuration) {
+        assert null != configuration;
+
         if (this.replication == null) {
             this.replication = configuration.replication;
         }

@@ -15,6 +15,10 @@ public class ConfigurationReader {
         Class<T> clazz,
         Map<String, Object> data
     ) throws InstantiationException, IllegalAccessException {
+        assert null != clazz;
+        assert ConfigurationInterface.class.isAssignableFrom(clazz);
+        assert data != null;
+
         return createConfigurationObjectFromData(clazz, data, "$");
     }
 
@@ -23,6 +27,11 @@ public class ConfigurationReader {
         Map<String, Object> data,
         String trace
     ) throws InstantiationException, IllegalAccessException {
+        assert null != clazz;
+        assert ConfigurationInterface.class.isAssignableFrom(clazz);
+        assert data != null;
+        assert trace != null;
+
         T configuration;
 
         if (this.isAbstractClass(clazz)) {
@@ -41,8 +50,11 @@ public class ConfigurationReader {
      *
      * @return True if the given class is abstract and configured properly
      */
-    private <T extends ConfigurationInterface> boolean isAbstractClass(Class<T> clazz) throws
-        InvalidConfigurationException {
+    private <T extends ConfigurationInterface> boolean isAbstractClass(Class<T> clazz)
+        throws InvalidConfigurationException {
+        assert clazz != null;
+        assert ConfigurationInterface.class.isAssignableFrom(clazz);
+
         if (!Modifier.isAbstract(clazz.getModifiers())) {
             return false;
         }
@@ -66,10 +78,14 @@ public class ConfigurationReader {
         ConfigurationInterface object,
         Map<String, Object> data,
         String trace
-    ) throws
-        InstantiationException,
-        IllegalAccessException {
+    ) throws InstantiationException, IllegalAccessException {
+        assert null != object;
+        assert null != data;
+        assert null != trace;
+
         Map<Config, Field> fields = this.getFieldsForClass(object.getClass());
+
+        assert null != fields;
 
         for (Map.Entry<String, Object> dataEntry : data.entrySet()) {
             String key = dataEntry.getKey();
@@ -82,6 +98,8 @@ public class ConfigurationReader {
                 if (config.name().equals(key)) {
                     Object fieldValue = this.instantiateProperty(field, config, value, trace + "." + config.name());
 
+                    assert null != fieldValue;
+
                     field.set(object, fieldValue);
                 }
             }
@@ -93,6 +111,9 @@ public class ConfigurationReader {
     private <U> U instantiateObjectFromData(Class<U> clazz, Object data, String trace) throws
         IllegalAccessException,
         InstantiationException {
+        assert null != clazz;
+        assert null != data;
+        assert null != trace;
 
         if (clazz.equals(Boolean.class) || clazz.equals(Integer.class) || clazz.equals(String.class)) {
             if (!clazz.isAssignableFrom(data.getClass())) {
@@ -116,7 +137,11 @@ public class ConfigurationReader {
                 );
             }
 
-            return (U) this.createConfigurationObjectFromData((Class<ConfigurationInterface>) clazz, (Map) data, trace);
+            U object = (U) this.createConfigurationObjectFromData((Class<ConfigurationInterface>) clazz, (Map) data, trace);
+
+            assert null != object;
+
+            return object;
         }
 
         throw new InvalidConfigurationException(
@@ -125,9 +150,13 @@ public class ConfigurationReader {
     }
 
     @SuppressWarnings("unchecked")
-    private Object instantiateProperty(Field field, Config config, Object data, String trace) throws
-        InstantiationException,
-        IllegalAccessException {
+    private Object instantiateProperty(Field field, Config config, Object data, String trace)
+        throws InstantiationException, IllegalAccessException {
+        assert null != field;
+        assert null != config;
+        assert null != data;
+        assert null != trace;
+
         if (config.collection()) {
             if (!List.class.isAssignableFrom(data.getClass())) {
                 throw new InvalidConfigurationException(
@@ -148,6 +177,8 @@ public class ConfigurationReader {
     }
 
     private Map<Config, Field> getFieldsForClass(Class clazz) {
+        assert null != clazz;
+
         Map<Config, Field> properties = new HashMap<>();
         List<Field> fields = new ArrayList<>();
         Collections.addAll(fields, clazz.getFields());
@@ -171,9 +202,10 @@ public class ConfigurationReader {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    private <T extends ConfigurationInterface> T createInstance(Class<T> clazz) throws
-        IllegalAccessException,
-        InstantiationException {
+    private <T extends ConfigurationInterface> T createInstance(Class<T> clazz)
+        throws IllegalAccessException, InstantiationException {
+        assert null != clazz;
+        assert ConfigurationInterface.class.isAssignableFrom(clazz);
 
         // TODO: Allow custom factories
 
@@ -193,6 +225,11 @@ public class ConfigurationReader {
         Map<String, Object> data,
         String trace
     ) throws InstantiationException, IllegalAccessException {
+        assert null != clazz;
+        assert ConfigurationInterface.class.isAssignableFrom(clazz);
+        assert null != data;
+        assert null != trace;
+
         Discriminator annotation = clazz.getAnnotation(Discriminator.class);
         DiscriminatorMapping[] mappings = annotation.map();
 

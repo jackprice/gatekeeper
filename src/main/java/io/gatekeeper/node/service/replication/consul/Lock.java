@@ -9,6 +9,12 @@ public class Lock implements AutoCloseable {
     String session;
 
     public Lock(String name, Client client, String session) {
+        assert null != name;
+        assert name.length() > 0;
+        assert null != client;
+        assert null != session;
+        assert session.length() > 0;
+
         this.name = name;
         this.client = client;
         this.session = session;

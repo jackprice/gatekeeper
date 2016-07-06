@@ -19,6 +19,8 @@ public abstract class AbstractCommandWithConfiguration extends AbstractCommand {
     }
 
     protected Configuration getConfiguration(Input input) throws Exception {
+        assert null != input;
+
         if (configuration == null) {
             try {
                 buildConfiguration(input);
@@ -37,6 +39,8 @@ public abstract class AbstractCommandWithConfiguration extends AbstractCommand {
         IllegalAccessException,
         IOException,
         InstantiationException {
+        assert null != input;
+
         String[] args = input.getOriginalArguments();
         CommandLineParser parser = new DefaultParser();
         CommandLine line;

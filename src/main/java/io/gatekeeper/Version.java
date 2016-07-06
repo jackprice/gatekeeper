@@ -39,6 +39,9 @@ public class Version {
      * Returns the smallest version of the two.
      */
     public static Version smallest(Version version1, Version version2) {
+        assert null != version1;
+        assert null != version2;
+
         return version1.id < version2.id ? version1 : version2;
     }
 

@@ -19,6 +19,10 @@ public class DirectoryParser<T extends ConfigurationInterface> {
      * @param path  The path to the directory containing config files.
      */
     public DirectoryParser(Class<T> clazz, String path) {
+        assert null != clazz;
+        assert ConfigurationInterface.class.isAssignableFrom(clazz);
+        assert null != path;
+
         this.clazz = clazz;
         this.path = path;
     }
@@ -38,6 +42,8 @@ public class DirectoryParser<T extends ConfigurationInterface> {
         for (File file : files) {
             FileParser<T> fileParser = new FileParser<T>(clazz, file.getPath());
             T fileConfiguration = fileParser.parse();
+
+            assert null != fileConfiguration;
 
             configuration.merge(fileConfiguration);
         }
