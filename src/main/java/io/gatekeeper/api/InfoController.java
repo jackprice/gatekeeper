@@ -14,6 +14,9 @@ public class InfoController extends AbstractController {
 
     @Override
     protected JSONObject handle(HttpServerRequest request) throws Exception {
-        return (ReplicationInformation) container.service(ReplicationService.class).getInformation().get();
+        return (ReplicationInformation) container
+            .service(ReplicationService.class)
+            .getInformation()
+            .get(timeout, timeoutUnit);
     }
 }

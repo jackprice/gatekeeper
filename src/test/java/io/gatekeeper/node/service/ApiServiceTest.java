@@ -6,6 +6,7 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import io.gatekeeper.Version;
 import io.gatekeeper.configuration.Configuration;
+import io.gatekeeper.node.ServiceContainer;
 import org.apache.http.client.HttpClient;
 import org.junit.Test;
 
@@ -19,7 +20,7 @@ public class ApiServiceTest {
     public void testStart() throws IOException {
         Configuration configuration = new Configuration();
 
-        ApiService service = new ApiService(configuration);
+        ApiService service = new ApiService(configuration, new ServiceContainer());
 
         service.start().join();
 
@@ -30,7 +31,7 @@ public class ApiServiceTest {
     public void testVersion() throws IOException, UnirestException {
         Configuration configuration = new Configuration();
 
-        ApiService service = new ApiService(configuration);
+        ApiService service = new ApiService(configuration, new ServiceContainer());
 
         service.start().join();
 

@@ -7,9 +7,16 @@ import io.vertx.ext.web.RoutingContext;
 import org.apache.http.entity.ContentType;
 import org.json.JSONObject;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 public abstract class AbstractController {
 
     protected final ServiceContainer container;
+
+    protected final long timeout = 1000;
+
+    protected final TimeUnit timeoutUnit = TimeUnit.MILLISECONDS;
 
     public AbstractController(ServiceContainer container) {
         assert null != container;
@@ -22,6 +29,17 @@ public abstract class AbstractController {
 
         try {
             data = handle(context.request());
+        } catch (TimeoutException exception) {
+            context.response().setStatusCode(502);
+            context.response().putHeader("content-type", ContentType.APPLICATION_JSON.toString());
+
+            data = new JSONObject();
+
+            data.put("message", "Timed out waiting for response");
+
+            context.response().end(data.toString(4));
+
+            return;
         } catch (Exception exception) {
             context.response().setStatusCode(500);
             context.response().putHeader("content-type", ContentType.APPLICATION_JSON.toString());
