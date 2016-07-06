@@ -117,6 +117,27 @@ public class Client implements Closeable {
 
         this.executor.execute(() -> {
             try {
+                List<Node> nodes = doGetNodes();
+
+                if (nodes.size() == 0) {
+                    registerService().thenRunAsync(() -> {
+                        try {
+                            List<Node> nodes0 = doGetNodes();
+
+                            if (nodes0.size() == 0) {
+                                throw new Exception("Could not find nodes");
+                            }
+
+                            future.complete(doGetNodes());
+
+                        } catch (Exception exception) {
+                            future.completeExceptionally(exception);
+                        }
+                    }, executor);
+
+                    return;
+                }
+
                 future.complete(doGetNodes());
 
             } catch (Exception exception) {
