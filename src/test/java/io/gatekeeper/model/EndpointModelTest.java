@@ -6,15 +6,15 @@ import java.util.Collections;
 
 import static org.junit.Assert.*;
 
-public class EndpointTest {
+public class EndpointModelTest {
 
     @Test
     public void testCreate() {
-        Endpoint endpoint = new Endpoint();
+        EndpointModel endpoint = new EndpointModel();
 
         assertNotNull(endpoint.id());
 
-        Domain domain = new Domain("foo.com");
+        DomainModel domain = new DomainModel("foo.com");
 
         endpoint.add(domain);
 
@@ -23,25 +23,25 @@ public class EndpointTest {
 
     @Test
     public void testContains() {
-        Endpoint endpoint = new Endpoint();
+        EndpointModel endpoint = new EndpointModel();
 
         assertNotNull(endpoint.id());
 
-        Domain domain = new Domain("foo.com");
+        DomainModel domain = new DomainModel("foo.com");
 
         endpoint.add(domain);
 
         assertTrue(endpoint.contains(domain));
-        assertTrue(endpoint.contains(new Domain("foo.com")));
+        assertTrue(endpoint.contains(new DomainModel("foo.com")));
     }
 
     @Test
     public void testMatches() {
-        Endpoint endpoint = new Endpoint();
+        EndpointModel endpoint = new EndpointModel();
 
         assertNotNull(endpoint.id());
 
-        Domain domain = new Domain("foo.bar.com");
+        DomainModel domain = new DomainModel("foo.bar.com");
 
         endpoint.add(domain);
 

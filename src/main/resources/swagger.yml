@@ -14,8 +14,9 @@ paths:
     get:
       summary: Gatekeeper version overview
       description: |
-        The version endpoint returns the version of the gatekeeper instance running as the current cluster leader.<br>
-        Note that the least-significant portion of the version string may differ from request to request as a new cluster leader may have been elected.
+        The version endpoint returns the version of the gatekeeper instance running as the current cluster leader.
+        Note that the least-significant portion of the version string may differ from request to request as a new
+        cluster leader may have been elected.
       responses:
         200:
           description: Version information
@@ -31,6 +32,76 @@ paths:
           description: Replication status
           schema:
             $ref: '#/definitions/ReplicationStatus'
+  /endpoint:
+    get:
+      summary: Lists endpoints
+      description: |
+        The endpoint endpoint returns endpoints under gatekeeper, optionally filtered by a given criterea.
+      parameters:
+        - in: query
+          name: domain
+          description: An optional glob-like domain filter
+          required: false
+          type: string
+      responses:
+        200:
+          description: Endpoints found
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Endpoint'
+    post:
+      summary: Create endpoint
+      description: |
+        Creates a new endpoint to be managed by gatekeeper.
+      parameters:
+        - in: body
+          name: endpoint
+          description: The endpoint to create
+          required: true
+          schema:
+            $ref: '#/definitions/NewEndpoint'
+      responses:
+        201:
+          description: Endpoints created
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Endpoint'
+  /endpoint/{id}:
+    get:
+      summary: Fetch endpoint
+      description: |
+        Returns an endpoint by its unique ID.
+      parameters:
+        - in: path
+          name: id
+          description: The unique UUID of the endpoint
+          required: true
+          type: string
+      responses:
+        200:
+          description: EndpointModel found
+          schema:
+              $ref: '#/definitions/Endpoint'
+        404:
+          description: EndpointModel not found
+    delete:
+      summary: Permanently delete an endpoint
+      description: |
+        Deletes an endpoint by its unique ID.
+      parameters:
+        - in: path
+          name: id
+          description: The unique UUID of the endpoint
+          required: true
+          type: string
+      responses:
+        204:
+          description: EndpointModel successfully deleted
+        404:
+          description: EndpointModel not found
+
 
 definitions:
   Version:
@@ -60,3 +131,30 @@ definitions:
       extra:
         type: object
         description: Additional information about replication on a per-provider basis
+  NewEndpoint:
+    type: object
+    properties:
+      domains:
+        type: array
+        items:
+          type: string
+          description: The FQDN of this domain
+  Endpoint:
+    type: object
+    properties:
+      id:
+        type: string
+        description: A unique ID (UUID) for this endpoint
+      domains:
+        type: array
+        items:
+          $ref: '#/definitions/Domain'
+  Domain:
+      type: object
+      properties:
+        id:
+          type: string
+          description: A unique ID (UUID) for this domain
+        domain:
+          type: string
+          description: The FQDN of this domain

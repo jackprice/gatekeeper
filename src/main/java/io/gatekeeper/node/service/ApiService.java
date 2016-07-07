@@ -1,25 +1,41 @@
 package io.gatekeeper.node.service;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.gatekeeper.GatekeeperException;
 import io.gatekeeper.api.AbstractController;
+import io.gatekeeper.api.HttpResponseException;
+import io.gatekeeper.api.NotFoundException;
+import io.gatekeeper.api.controller.CreateEndpoint;
+import io.gatekeeper.api.controller.GetEndpoints;
 import io.gatekeeper.api.controller.GetReplicationInfo;
 import io.gatekeeper.api.controller.GetVersion;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
+import io.gatekeeper.model.AbstractModel;
 import io.gatekeeper.node.ServiceContainer;
+import io.swagger.client.ApiClient;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+import org.apache.http.entity.ContentType;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("HardcodedFileSeparator")
 public class ApiService implements Service {
@@ -67,7 +83,11 @@ public class ApiService implements Service {
 
             server.listen(configuration.api.port, configuration.api.address, (result) -> {
                 if (result.succeeded()) {
-                    logger.info(String.format("Listening on http://%s:%d", configuration.api.address, configuration.api.port));
+                    logger.info(String.format(
+                        "Listening on http://%s:%d",
+                        configuration.api.address,
+                        configuration.api.port
+                    ));
 
                     future.complete(null);
                 } else {
@@ -81,26 +101,202 @@ public class ApiService implements Service {
         return future;
     }
 
+    /**
+     * Configure the vertx router to dispatch to the appropriate controllers.
+     *
+     * {@link #getRoutes}
+     */
     private void configureRouter() {
-        router.route(HttpMethod.GET, "/api/version").handler((context) -> handle(context, GetVersion.class));
-        router.route(HttpMethod.GET, "/api/replication/info").handler((context) -> handle(context, GetReplicationInfo.class));
+        Map<PathDefinition, Class> routes = getRoutes();
+
+        router.route().handler(BodyHandler.create().setBodyLimit(10240));
+
+        for (Map.Entry<PathDefinition, Class> entry : routes.entrySet()) {
+            PathDefinition path = entry.getKey();
+            Class controller = entry.getValue();
+
+            router
+                .route(path.method, path.path)
+                .handler((context) -> handle(context, controller))
+            ;
+        }
     }
 
-    private <T extends AbstractController, U extends Class<T>> void handle(RoutingContext context, U clazz) {
-        T controller;
+    /**
+     * Called to build a map of route definitions to controller implementations.
+     *
+     * TODO: Allow this to be built dynamically or from plugins
+     *
+     * @return A mapping of PathDefinition => ControllerClass
+     */
+    private Map<PathDefinition, Class> getRoutes() {
+        Map<PathDefinition, Class> routes = new HashMap<>();
 
+        routes.put(new PathDefinition("/api/version", HttpMethod.GET), GetVersion.class);
+        routes.put(new PathDefinition("/api/replication/info", HttpMethod.GET), GetReplicationInfo.class);
+        routes.put(new PathDefinition("/api/endpoint", HttpMethod.GET), GetEndpoints.class);
+        routes.put(new PathDefinition("/api/endpoint", HttpMethod.POST), CreateEndpoint.class);
+
+        return routes;
+    }
+
+    /**
+     * Handle the given routed context and dispatch it into the given controller.
+     */
+    private <Controller extends AbstractController, ControllerClass extends Class<Controller>> void handle(
+        RoutingContext context,
+        ControllerClass clazz
+    ) {
+        Controller controller;
+
+        // Configure CORS properly
+        // TODO: Allow this to come from a configuration value?
         context.response().putHeader("Access-Control-Allow-Origin", "*");
 
         try {
-            controller = instantiateController(clazz);
+            controller = instantiateController(clazz, context);
+
+            Object result = dispatchToController(context, controller);
+
+            sendResponseFromObject(context, result);
         } catch (Exception exception) {
+            sendResponseFromException(context, exception);
+        }
+    }
+
+    /**
+     * Parse the request in the context given and dispatch it into the controller.
+     *
+     * @param context    The routed context
+     * @param controller The controller to dispatch to
+     */
+    private <Controller extends AbstractController> Object dispatchToController(
+        RoutingContext context,
+        Controller controller
+    ) throws Exception {
+        return controller.invoke();
+    }
+
+    /**
+     * Parse the given object into a response suitable for sending, and send it to the client.
+     *
+     * @param context The routed context
+     * @param object  A response from the mapped controller
+     */
+    @SuppressWarnings("unchecked") // It's fine - I promise!
+    private void sendResponseFromObject(RoutingContext context, Object object) throws HttpResponseException {
+        if (object == null) {
+            throw new NotFoundException();
+        }
+
+        // Convert lists of objects if possible
+        if (List.class.isAssignableFrom(object.getClass())) {
+            object = ((List) object).stream()
+                .map(this::convertObjectToApiObject)
+                .collect(Collectors.toList());
+        }
+
+        object = convertObjectToApiObject(object);
+
+        OutputStream output = new ByteArrayOutputStream();
+        ApiClient client = new ApiClient();
+        JsonGenerator generator;
+
+        try {
+            generator = client
+                .getObjectMapper()
+                .getFactory()
+                .createGenerator(output);
+
+            generator.useDefaultPrettyPrinter();
+            generator.writeObject(object);
+            generator.close();
+        } catch (IOException exception) {
+            sendResponseFromException(context, exception);
+
             return;
         }
 
-        controller.handle(context);
+        context.response().putHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+        context.response().end(output.toString());
     }
 
-    private <Controller, ControllerClass extends Class<Controller>> Controller instantiateController(ControllerClass clazz)
+    /**
+     * Convert the given object into an API object, if a *direct* conversion exists.
+     *
+     * @param object The object to convert
+     *
+     * @return The converted object, or the original object if no conversion could be made.
+     */
+    private Object convertObjectToApiObject(Object object) {
+        assert null != object;
+
+        if (AbstractModel.class.isAssignableFrom(object.getClass())) {
+            return ((AbstractModel) object).toApiModel();
+        }
+
+        return object;
+    }
+
+    /**
+     * Create a new controller of the given class and for the given routing context.
+     *
+     * @param clazz   The controller class
+     * @param context The current routing context
+     *
+     * @return An instantiated controller, ready to handle requests
+     */
+    private <Controller, ControllerClass extends Class<Controller>> Controller instantiateController(
+        ControllerClass clazz,
+        RoutingContext context
+    ) {
+        try {
+            Constructor<Controller> constructor = clazz.getConstructor(ServiceContainer.class, RoutingContext.class);
+
+            return constructor.newInstance(container, context);
+        } catch (Exception exception) {
+            throw new GatekeeperException(
+                String.format("Could not create controller %s", clazz.getCanonicalName())
+            );
+        }
+    }
+
+    /**
+     * Convert the given exception into a sensible error message.
+     *
+     * @param context   The routing context
+     * @param exception The exception to convert into a response
+     */
+    private void sendResponseFromException(RoutingContext context, Exception exception) {
+        Integer code = 500;
+        String message = "Internal server error";
+
+        if (exception instanceof TimeoutException) {
+            code = 504;
+            message = "Gateway timeout";
+        } else if (HttpResponseException.class.isAssignableFrom(exception.getClass())) {
+            code = ((HttpResponseException) exception).getCode();
+            message = ((HttpResponseException) exception).getMessage();
+        }
+
+        context.response().putHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+        context.response().setStatusCode(code);
+        context.response().setStatusMessage(message);
+
+        JSONObject response = new JSONObject();
+
+        response.put("code", code);
+        response.put("message", message);
+        response.put("_exception_class", exception.getClass().getCanonicalName());
+        response.put("_exception_message", exception.getMessage());
+
+        context.response().end(response.toString(4));
+    }
+
+    private <Controller, ControllerClass extends Class<Controller>> Controller instantiateController(
+        ControllerClass
+            clazz
+    )
         throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         assert null != clazz;
 
@@ -115,5 +311,20 @@ public class ApiService implements Service {
 
         server.close();
         vertx.close();
+    }
+
+    /**
+     * A path definition collects together a URI and an HTTP method into one class.
+     */
+    private class PathDefinition {
+
+        String path;
+
+        HttpMethod method;
+
+        PathDefinition(String path, HttpMethod method) {
+            this.path = path;
+            this.method = method;
+        }
     }
 }

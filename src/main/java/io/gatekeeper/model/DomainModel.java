@@ -1,6 +1,6 @@
 package io.gatekeeper.model;
 
-import org.apache.commons.lang3.ArrayUtils;
+import io.gatekeeper.api.model.Domain;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -10,11 +10,11 @@ import java.util.List;
 /**
  * A domain is a single domain name contained within an endpoint.
  */
-public class Domain extends AbstractModel implements Serializable {
+public class DomainModel extends AbstractModel<Domain> implements Serializable {
 
     private String domain;
 
-    public Domain(String domain) {
+    public DomainModel(String domain) {
         this.domain = domain;
     }
 
@@ -29,7 +29,7 @@ public class Domain extends AbstractModel implements Serializable {
             return false;
         }
 
-        if (!obj.getClass().equals(Domain.class)) {
+        if (!obj.getClass().equals(DomainModel.class)) {
             return false;
         }
 
@@ -51,7 +51,7 @@ public class Domain extends AbstractModel implements Serializable {
             return false;
         }
 
-        for (int i = 0; i < domainParts.length && i < patternParts.length; i ++) {
+        for (int i = 0; i < domainParts.length && i < patternParts.length; i++) {
             String domainCompare = domainParts[i];
             String patternCompare = patternParts[i];
 
@@ -83,5 +83,20 @@ public class Domain extends AbstractModel implements Serializable {
         Collections.reverse(partsList);
 
         return partsList.toArray(reversed);
+    }
+
+    @Override
+    public Domain toApiModel() {
+        Domain domain = new Domain();
+
+        domain.id(id().toString());
+        domain.domain(this.domain);
+
+        return domain;
+    }
+
+    @Override
+    public void fromApiModel(Domain domain) {
+        this.domain = domain.getDomain();
     }
 }

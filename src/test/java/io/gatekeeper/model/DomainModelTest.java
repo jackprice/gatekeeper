@@ -4,11 +4,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class DomainTest {
+public class DomainModelTest {
 
     @Test
     public void testCreate() {
-        Domain domain = new Domain("foo.com");
+        DomainModel domain = new DomainModel("foo.com");
 
         assertNotNull(domain.id());
         assertEquals("foo.com", domain.toString());
@@ -16,23 +16,23 @@ public class DomainTest {
 
     @Test
     public void testEquals() {
-        Domain domainA = new Domain("foo.com");
-        Domain domainB = new Domain("foo.com");
+        DomainModel domainA = new DomainModel("foo.com");
+        DomainModel domainB = new DomainModel("foo.com");
 
         assertTrue(domainA.equals(domainB));
     }
 
     @Test
     public void testNotEquals() {
-        Domain domainA = new Domain("foo.com");
-        Domain domainB = new Domain("bar.com");
+        DomainModel domainA = new DomainModel("foo.com");
+        DomainModel domainB = new DomainModel("bar.com");
 
         assertFalse(domainA.equals(domainB));
     }
 
     @Test
     public void testMatcher() {
-        Domain domain = new Domain("foo.bar.com");
+        DomainModel domain = new DomainModel("foo.bar.com");
 
         // An exact domain match is always true
         assertTrue(domain.matches("foo.bar.com"));

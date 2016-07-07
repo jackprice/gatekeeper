@@ -1,89 +1,126 @@
 package io.gatekeeper.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import io.gatekeeper.node.Node;
+import com.fasterxml.jackson.core.JsonParser;
 import io.gatekeeper.node.ServiceContainer;
+import io.gatekeeper.node.service.Service;
 import io.swagger.client.ApiClient;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.apache.http.entity.ContentType;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
+/**
+ * A controller takes a request, handles it and returns a response.
+ *
+ * All controllers are thread safe, and new ones are instantiated for each request, so any side effects from a request
+ * will be discarded.
+ */
 public abstract class AbstractController {
 
-    protected final ServiceContainer container;
+    /**
+     * A default timeout value for controllers making requests to services.
+     */
+    protected final static long timeout = 1000;
 
-    protected final long timeout = 1000;
+    /**
+     * The unit for default {@link #timeout timeout values}
+     */
+    protected final static TimeUnit timeoutUnit = TimeUnit.MILLISECONDS;
 
-    protected final TimeUnit timeoutUnit = TimeUnit.MILLISECONDS;
+    /**
+     * The service container.
+     *
+     * Can be used to retrieve any configured services.
+     */
+    private final ServiceContainer container;
 
-    public AbstractController(ServiceContainer container) {
+    /**
+     * The currently-being handled routing context.
+     */
+    private RoutingContext context;
+
+    /**
+     * The request that is currently being handled.
+     */
+    protected HttpServerRequest request;
+
+    /**
+     * Internal constructor.
+     *
+     * @param container The current service container
+     * @param context   The routing context that invoked this controller
+     */
+    public AbstractController(ServiceContainer container, RoutingContext context) {
         assert null != container;
+        assert null != context;
 
         this.container = container;
+        this.context = context;
+        this.request = context.request();
     }
 
-    public void handle(RoutingContext context) {
-        Object data;
-        JSONObject jsonData;
+    /**
+     * Retrieve a service from the service container.
+     *
+     * @param clazz The service interface to retrieve
+     *
+     * @return The concrete service from the container
+     */
+    protected <T extends Service, U extends Class<T>> T get(U clazz) {
+        T service = this.container.service(clazz);
 
+        assert null != service;
+
+        return service;
+    }
+
+    /**
+     * Retrieve the HTTP body content as a JSON object.
+     *
+     * @return The content of the HTTP body
+     */
+    protected JsonObject body() {
+        return context.getBodyAsJson();
+    }
+
+    /**
+     * Read the HTTP body content as a JSON object ande decode it to the given API model.
+     *
+     * @param clazz The class of the API model
+     */
+    protected <T> T readBodyAs(Class<T> clazz) throws HttpResponseException {
         try {
-            data = handle(context.request());
+            String json = context.getBodyAsString();
+            ApiClient client = new ApiClient();
+            JsonParser parser = client.getObjectMapper()
+                .getFactory()
+                .createParser(json);
 
-            context.response().putHeader("content-type", ContentType.APPLICATION_JSON.toString());
-
-            context.response().end(modelToJSON(data));
-
-            return;
-        } catch (TimeoutException exception) {
-            context.response().setStatusCode(502);
-            context.response().putHeader("content-type", ContentType.APPLICATION_JSON.toString());
-
-            jsonData = new JSONObject();
-
-            jsonData.put("message", "Timed out waiting for response");
-
-            context.response().end(jsonData.toString(4));
-
-            return;
+            return parser.readValueAs(clazz);
         } catch (Exception exception) {
-            context.response().setStatusCode(500);
-            context.response().putHeader("content-type", ContentType.APPLICATION_JSON.toString());
-
-            jsonData = new JSONObject();
-
-            jsonData.put("exception", exception.getClass().getCanonicalName());
-            jsonData.put("message", exception.getMessage());
-
-            context.response().end(jsonData.toString(4));
-
-            return;
+            throw new HttpResponseException(422, "Malformed entity");
         }
     }
 
-    protected abstract Object handle(HttpServerRequest request) throws Exception;
-
-    protected String modelToJSON(Object model) throws IOException {
-        ApiClient client = new ApiClient();
-
-        OutputStream output = new ByteArrayOutputStream();
-        JsonGenerator generator = client
-            .getObjectMapper()
-            .getFactory()
-            .createGenerator(output);
-
-        generator.useDefaultPrettyPrinter();
-
-        generator.writeObject(model);
-
-        generator.close();
-
-        return output.toString();
+    /**
+     * Retrieve a parameter from the query string.
+     *
+     * @param name The name of the querystring
+     *
+     * @return The value of the query, or null if it is not defined
+     */
+    protected String query(String name) {
+        return context.request().getParam(name);
     }
+
+    /**
+     * Called to invoke this controller and handle the configured request.
+     *
+     * @return A response object, list or null
+     */
+    public abstract Object invoke() throws Exception;
 }

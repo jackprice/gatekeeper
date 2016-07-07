@@ -6,19 +6,22 @@ import io.gatekeeper.node.ServiceContainer;
 import io.gatekeeper.node.service.ReplicationService;
 import io.gatekeeper.node.service.replication.common.ReplicationInformation;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.web.RoutingContext;
 
 public class GetReplicationInfo extends AbstractController {
 
-    public GetReplicationInfo(ServiceContainer container) {
-        super(container);
+    /**
+     * {@inheritDoc}
+     */
+    public GetReplicationInfo(ServiceContainer container, RoutingContext context) {
+        super(container, context);
     }
 
     @Override
-    protected Object handle(HttpServerRequest request) throws Exception {
+    public Object invoke() throws Exception {
         ReplicationStatus replicationStatus = new ReplicationStatus();
 
-        ReplicationInformation information = (ReplicationInformation) container
-            .service(ReplicationService.class)
+        ReplicationInformation information = (ReplicationInformation) get(ReplicationService.class)
             .getInformation()
             .get(timeout, timeoutUnit);
 
