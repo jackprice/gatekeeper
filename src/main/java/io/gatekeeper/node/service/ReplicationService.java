@@ -44,9 +44,17 @@ public abstract class ReplicationService<ReplicationConfigurationType extends Re
 
     public abstract CompletableFuture<List<Node>> fetchNodes();
 
+    public void lock() throws InterruptedException {
+        this.lock(".global");
+    }
+
     public abstract void lock(String name) throws InterruptedException;
 
     public abstract void unlock(String name) throws InterruptedException;
+
+    public void unlock() throws InterruptedException {
+        this.unlock(".global");
+    }
 
     public abstract CompletableFuture<ReplicationInformation> getInformation();
 

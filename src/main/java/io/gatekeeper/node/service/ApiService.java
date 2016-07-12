@@ -6,13 +6,10 @@ import io.gatekeeper.GatekeeperException;
 import io.gatekeeper.api.AbstractController;
 import io.gatekeeper.api.HttpResponseException;
 import io.gatekeeper.api.NotFoundException;
-import io.gatekeeper.api.controller.CreateEndpoint;
-import io.gatekeeper.api.controller.GetEndpoints;
-import io.gatekeeper.api.controller.GetReplicationInfo;
-import io.gatekeeper.api.controller.GetVersion;
+import io.gatekeeper.api.controller.*;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
-import io.gatekeeper.model.AbstractModel;
+import io.gatekeeper.model.*;
 import io.gatekeeper.node.ServiceContainer;
 import io.swagger.client.ApiClient;
 import io.vertx.core.Vertx;
@@ -117,7 +114,7 @@ public class ApiService implements Service {
 
             router
                 .route(path.method, path.path)
-                .handler((context) -> handle(context, controller))
+                .handler((context) -> spawnHandler(context, controller))
             ;
         }
     }
@@ -136,8 +133,25 @@ public class ApiService implements Service {
         routes.put(new PathDefinition("/api/replication/info", HttpMethod.GET), GetReplicationInfo.class);
         routes.put(new PathDefinition("/api/endpoint", HttpMethod.GET), GetEndpoints.class);
         routes.put(new PathDefinition("/api/endpoint", HttpMethod.POST), CreateEndpoint.class);
+        routes.put(new PathDefinition("/api/endpoint/:id", HttpMethod.GET), GetEndpoint.class);
+        routes.put(new PathDefinition("/api/endpoint/:id", HttpMethod.PATCH), PatchEndpoint.class);
+        routes.put(new PathDefinition("/api/provider", HttpMethod.GET), GetProviders.class);
+        routes.put(new PathDefinition("/api/provider", HttpMethod.POST), CreateProvider.class);
+        routes.put(new PathDefinition("/api/provider/:id", HttpMethod.GET), GetProvider.class);
 
         return routes;
+    }
+
+    /**
+     * This function simply adds a runnable to the executor pool to dispatch the routed context.
+     *
+     * {@link #handle(RoutingContext, Class)}
+     */
+    private <Controller extends AbstractController, ControllerClass extends Class<Controller>> void spawnHandler(
+        RoutingContext context,
+        ControllerClass clazz
+    ) {
+        executor.execute(() -> handle(context, clazz));
     }
 
     /**
@@ -231,8 +245,11 @@ public class ApiService implements Service {
     private Object convertObjectToApiObject(Object object) {
         assert null != object;
 
-        if (AbstractModel.class.isAssignableFrom(object.getClass())) {
-            return ((AbstractModel) object).toApiModel();
+        if (EndpointModel.class.isAssignableFrom(object.getClass())) {
+            return new EndpointModelBuilder().toApiModel((EndpointModel) object);
+        }
+        if (ProviderModel.class.isAssignableFrom(object.getClass())) {
+            return new ProviderModelBuilder().toApiModel((ProviderModel) object);
         }
 
         return object;
@@ -270,6 +287,7 @@ public class ApiService implements Service {
     private void sendResponseFromException(RoutingContext context, Exception exception) {
         Integer code = 500;
         String message = "Internal server error";
+        String detail = null;
 
         if (exception instanceof TimeoutException) {
             code = 504;
@@ -277,6 +295,7 @@ public class ApiService implements Service {
         } else if (HttpResponseException.class.isAssignableFrom(exception.getClass())) {
             code = ((HttpResponseException) exception).getCode();
             message = ((HttpResponseException) exception).getMessage();
+            detail = ((HttpResponseException) exception).getDetail();
         }
 
         context.response().putHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
@@ -289,6 +308,11 @@ public class ApiService implements Service {
         response.put("message", message);
         response.put("_exception_class", exception.getClass().getCanonicalName());
         response.put("_exception_message", exception.getMessage());
+        response.put("_exception_trace", exception.getStackTrace());
+
+        if (detail != null) {
+            response.put("detail", detail);
+        }
 
         context.response().end(response.toString(4));
     }

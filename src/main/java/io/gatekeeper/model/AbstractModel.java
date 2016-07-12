@@ -1,26 +1,38 @@
 package io.gatekeeper.model;
 
+import io.gatekeeper.InvalidConfigurationException;
+
 import java.util.UUID;
 
-abstract public class AbstractModel <ApiModel> {
+abstract public class AbstractModel {
 
-    private UUID id = UUID.randomUUID();
+    /**
+     * The unique UUID of this model.
+     */
+    protected UUID uuid = UUID.randomUUID();
 
-    public UUID id() {
-        return id;
+    /**
+     * @return The unique UUID of this model
+     */
+    public UUID getUuid() {
+        return uuid;
     }
 
     /**
-     * Convert this model to its swagger API representation.
+     * Set the UUID of this model
      *
-     * @return The equivalent model
+     * @param uuid
      */
-    public abstract ApiModel toApiModel();
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
 
     /**
-     * Pull data for this model from its swagger API representation.
+     * Validate the data in this model
      *
-     * @param model The swagger model
+     * @throws InvalidConfigurationException If the configuration is invalid
      */
-    public abstract void fromApiModel(ApiModel model);
+    public void validate() throws InvalidConfigurationException {
+
+    }
 }

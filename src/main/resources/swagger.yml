@@ -1,16 +1,23 @@
 swagger: '2.0'
+
 info:
   title: Gatekeeper API
   version: "0.0.0"
+
 host: localhost:8123
+
 schemes:
   - http
-  - https
+
 basePath: /api
+
 produces:
   - application/json
+
 paths:
+
   /version:
+
     get:
       summary: Gatekeeper version overview
       description: |
@@ -22,7 +29,10 @@ paths:
           description: Version information
           schema:
             $ref: '#/definitions/Version'
+
+
   /replication/info:
+
     get:
       summary: Replication status overview
       description: |
@@ -32,7 +42,10 @@ paths:
           description: Replication status
           schema:
             $ref: '#/definitions/ReplicationStatus'
+
+
   /endpoint:
+
     get:
       summary: Lists endpoints
       description: |
@@ -43,6 +56,11 @@ paths:
           description: An optional glob-like domain filter
           required: false
           type: string
+        - in: query
+          name: tag
+          description: An optional tag to filter by
+          required: false
+          type: string
       responses:
         200:
           description: Endpoints found
@@ -50,6 +68,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Endpoint'
+
     post:
       summary: Create endpoint
       description: |
@@ -65,10 +84,11 @@ paths:
         201:
           description: Endpoints created
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Endpoint'
+            $ref: '#/definitions/Endpoint'
+
+
   /endpoint/{id}:
+
     get:
       summary: Fetch endpoint
       description: |
@@ -81,11 +101,38 @@ paths:
           type: string
       responses:
         200:
-          description: EndpointModel found
+          description: Endpoint found
           schema:
               $ref: '#/definitions/Endpoint'
         404:
-          description: EndpointModel not found
+          description: Endpoint not found
+
+    patch:
+      summary: Update an endpoint
+      description: |
+        Updates a previously configured endpoint.
+      parameters:
+        - in: path
+          name: id
+          description: The unique ID of the endpoint to configure
+          required: true
+          type: string
+        - in: body
+          name: endpoint
+          description: The updated endpoint configuration
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateEndpoint'
+      responses:
+        200:
+          description: Endpoint configuration updated
+          schema:
+            $ref: '#/definitions/Endpoint'
+        404:
+          description: Endpoint not found
+        422:
+          description: Invalid endpoint configuration
+
     delete:
       summary: Permanently delete an endpoint
       description: |
@@ -98,63 +145,402 @@ paths:
           type: string
       responses:
         204:
-          description: EndpointModel successfully deleted
+          description: Endpoint successfully deleted
         404:
-          description: EndpointModel not found
+          description: Endpoint not found
 
+
+  /endpoint/{id}/certificate:
+    get:
+      summary: Retrieve certificate
+      description: |
+        The certificate endpoint returns the certificate for the given endpoint.
+        If the certificate has not yet been generated, gatekeeper can be configured to either return immediately, or wait until it is available.
+      parameters:
+        - in: path
+          name: id
+          description: The unique UUID of the endpoint
+          required: true
+          type: string
+        - in: query
+          name: wait
+          description: If provided, this request will hang until a certificate is available, or the given timeout is elapsed
+          required: false
+          type: string
+      responses:
+        200:
+          description: Certificate retrieved
+          schema:
+            $ref: '#/definitions/Certificate'
+        204:
+          description: The certificate for this endpoint is not yet available
+        404:
+          description: Endpoint not found
+
+    post:
+      summary: Reissue a certificate
+      description: |
+        This endpoint forces a certificate to be reissued if possible.
+        The wait parameter can be used as above to cause this request to hang until the certificate is reissued.
+      parameters:
+        - in: path
+          name: id
+          description: The unique UUID of the endpoint
+          required: true
+          type: string
+        - in: query
+          name: wait
+          description: If provided, this request will hang until a certificate is available, or the given timeout is elapsed
+          required: false
+          type: string
+      responses:
+        201:
+          description: Certificate reissued
+          schema:
+            $ref: '#/definitions/Certificate'
+        204:
+          description: The certificate for this endpoint is not yet available
+        405:
+          description: This endpoint does not support reissuing
+        404:
+          description: Endpoint not found
+
+    put:
+      summary: Manually import a certificate
+      description: |
+        This endpoint forces a certificate to the one in the request.
+      parameters:
+        - in: path
+          name: id
+          description: The unique UUID of the endpoint
+          required: true
+          type: string
+        - in: body
+          name: certificate
+          description: If provided, this request will hang until a certificate is available, or the given timeout is elapsed
+          required: true
+          schema:
+            $ref: '#/definitions/ManualCertificate'
+      responses:
+        201:
+          description: Certificate reissued
+          schema:
+            $ref: '#/definitions/Certificate'
+        404:
+          description: Endpoint not found
+
+
+  /provider:
+    get:
+      summary: Lists configured providers
+      description: |
+        The provider endpoint returns all the configured providers inside gatekeeper.
+      responses:
+        200:
+          description: Providers found
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Provider'
+
+    post:
+      summary: Create a new provider
+      description: |
+        Creates and configures a new provider to be used for issuing certificates.
+      parameters:
+        - in: body
+          name: provider
+          description: The provider to create
+          required: true
+          schema:
+            $ref: '#/definitions/NewProvider'
+      responses:
+        201:
+          description: Provider created
+          schema:
+            $ref: '#/definitions/Provider'
+        422:
+          description: Invalid provider configuration
+
+
+  /provider/{id}:
+
+    patch:
+      summary: Update a provider
+      description: |
+        Updates a previously configured provider with the new configuration specified.
+        Note that this cannot change the ID or type of provider.
+      parameters:
+        - in: path
+          name: id
+          description: The unique ID of the provider to configure
+          required: true
+          type: string
+        - in: body
+          name: provider
+          description: The updated provider configuration
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateProvider'
+      responses:
+        200:
+          description: Provider configuration updated
+          schema:
+            $ref: '#/definitions/Provider'
+        404:
+          description: Provider not found
+        422:
+          description: Invalid provider configuration
+
+    delete:
+      summary: Delete a provider
+      description: |
+        Deletes a configured provider, removing it as a method for issuing certificates.
+      parameters:
+        - in: path
+          name: id
+          description: The unique ID of the provider to delete
+          required: true
+          type: string
+      responses:
+        204:
+          description: Provider successfully deleted
+        404:
+          description: Provider not found
 
 definitions:
+
   Version:
     type: object
     properties:
+
       version:
-        type: string
         description: A textual representation of a gatekeeper version
+        type: string
+
       major:
-        type: integer
         description: The major release of this version
+        type: integer
+
       minor:
-        type: integer
         description: The minor release of this version
-      revision:
         type: integer
+
+      revision:
         description: The revision number of this release
+        type: integer
+
+
   ReplicationStatus:
     type: object
     properties:
+
       type:
-        type: string
         description: The type of replication being used
+        type: string
+
       nodes:
-        type: integer
         description: The number of nodes (including this one) in the cluster
+        type: integer
+
       extra:
-        type: object
         description: Additional information about replication on a per-provider basis
+        type: object
+
+
   NewEndpoint:
     type: object
     properties:
+
       domains:
+        description: The domains in this endpoint
         type: array
         items:
           type: string
           description: The FQDN of this domain
+
+      tags:
+        description: Tags to apply to this endpoint
+        type: array
+        items:
+          type: string
+
+      provider:
+        description: The ID of the provider to use for generating certificates for this endpoint
+        type: string
+
+      dn:
+        description: A full DN (excluding CN) to be used when generating certificates
+        type: string
+
+    example:
+      domains:
+        - example.com
+        - www.example.com
+      tags:
+        - example
+        - staging
+      dn: C=ZA, ST=Western Cape, L=Cape Town, O=Acme Inc, OU=Certification Department
+
   Endpoint:
     type: object
     properties:
-      id:
+
+      uuid:
+        description: The unique ID of this endpoint
         type: string
-        description: A unique ID (UUID) for this endpoint
+
       domains:
+        description: The domains in this endpoint
         type: array
         items:
-          $ref: '#/definitions/Domain'
-  Domain:
-      type: object
-      properties:
-        id:
-          type: string
-          description: A unique ID (UUID) for this domain
-        domain:
           type: string
           description: The FQDN of this domain
+
+      tags:
+        description: Tags to apply to this endpoint
+        type: array
+        items:
+          type: string
+
+      provider:
+        description: The ID of the provider to use for generating certificates for this endpoint
+        type: string
+
+      dn:
+        description: A full DN (excluding CN) to be used when generating certificates
+        type: string
+
+    example:
+      uuid: 3b04aba3-78d0-4dad-9674-ab85fc65ee1f
+      domains:
+        - example.com
+        - www.example.com
+      tags:
+        - example
+        - staging
+      dn: C=ZA, ST=Western Cape, L=Cape Town, O=Acme Inc, OU=Certification Department
+
+  UpdateEndpoint:
+    type: object
+    properties:
+
+      domains:
+        description: The domains in this endpoint
+        type: array
+        items:
+          type: string
+          description: The FQDN of this domain
+
+      tags:
+        description: Tags to apply to this endpoint
+        type: array
+        items:
+          type: string
+
+      provider:
+        description: The ID of the provider to use for generating certificates for this endpoint
+        type: string
+
+      dn:
+        description: A full DN (excluding CN) to be used when generating certificates
+        type: string
+
+    example:
+      domains:
+        - example.com
+        - www.example.com
+      tags:
+        - example
+        - staging
+      dn: C=ZA, ST=Western Cape, L=Cape Town, O=Acme Inc, OU=Certification Department
+
+  NewProvider:
+    type: object
+    properties:
+
+      id:
+        description: A unique alphanumeric identifier for this provider
+        type: string
+
+      type:
+        description: The type of provider (e.g. self-signed, acme)
+        type: string
+        default: self-signed
+        enum:
+          - self-signed
+
+      configuration:
+        description: Additional provider-specific configuration
+        type: object
+
+  Provider:
+    type: object
+    properties:
+
+      uuid:
+        description: The unique ID of this provider
+        type: string
+
+      id:
+        description: A unique alphanumeric identifier for this provider
+        type: string
+
+      type:
+        description: The type of provider (e.g. self-signed, acme)
+        type: string
+        default: self-signed
+        enum:
+          - self-signed
+
+      configuration:
+        description: Additional provider-specific configuration
+        type: object
+
+  UpdateProvider:
+      type: object
+      properties:
+
+        configuration:
+          description: Additional provider-specific configuration
+          type: object
+
+  ManualCertificate:
+    type: object
+    properties:
+
+      certificate:
+        description: The raw data in this certificate, in PEM format
+        type: string
+
+      key:
+        description: The private key for this certificate, in PEM format
+        type: string
+
+      chain:
+        description: The certificate chain for this certificate, in PEM format
+        type: string
+
+  Certificate:
+    type: object
+    properties:
+
+      uuid:
+        description: The unique ID of this certificate
+        type: string
+
+      dn:
+        description: The DN of this certificate
+        type: string
+
+      certificate:
+        description: The raw data in this certificate, in PEM format
+        type: string
+
+      key:
+        description: The private key for this certificate, in PEM format
+        type: string
+
+      chain:
+        description: The certificate chain for this certificate, in PEM format
+        type: string

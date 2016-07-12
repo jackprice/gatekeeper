@@ -4,8 +4,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.BackendConfiguration;
 import io.gatekeeper.logging.Loggers;
-import io.gatekeeper.model.DomainModel;
 import io.gatekeeper.model.EndpointModel;
+import io.gatekeeper.model.ProviderModel;
 import io.gatekeeper.node.service.backend.common.crypto.EncryptionProvider;
 
 import java.io.IOException;
@@ -40,13 +40,17 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
 
     protected final ReplicationService replication;
 
-    public BackendService(Configuration configuration, ReplicationService replication) throws Exception {
+    protected final ProviderService providers;
+
+    public BackendService(Configuration configuration, ReplicationService replication, ProviderService providers) throws Exception {
         assert null != configuration;
         assert null != replication;
+        assert null != providers;
 
         this.configuration = configuration;
         this.backendConfiguration = (BackendConfigurationType) configuration.backend;
         this.replication = replication;
+        this.providers = providers;
         this.logger = Loggers.getBackendLogger();
         this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
             (new ThreadFactoryBuilder())
@@ -121,7 +125,7 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
      *
      * @return The endpoint that contains the domain
      */
-    public abstract CompletableFuture<EndpointModel> fetchEndpoint(DomainModel domain);
+    public abstract CompletableFuture<EndpointModel> fetchEndpoint(String domain);
 
     /**
      * Fetch all endpoints that match the given domain pattern.
@@ -133,6 +137,15 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
     public abstract CompletableFuture<List<EndpointModel>> fetchEndpoints(String pattern);
 
     /**
+     * Fetch all endpoints that contain the given tag.
+     *
+     * @param tag An arbitrary tag
+     *
+     * @return All endpoints that match the given tag
+     */
+    public abstract CompletableFuture<List<EndpointModel>> fetchEndpointsByTag(String tag);
+
+    /**
      * Create a new endpoint.
      *
      * @param endpoint A partially-filled endpoint
@@ -140,4 +153,52 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
      * @return The finalised endpoint
      */
     public abstract CompletableFuture<EndpointModel> createEndpoint(EndpointModel endpoint);
+
+    /**
+     * Permanently delete the endpoint.
+     *
+     * @param endpoint The endpoint to delete
+     */
+    public abstract CompletableFuture<Void> deleteEndpoint(EndpointModel endpoint);
+
+    /**
+     * Persists any changes to the given endpoint.
+     *
+     * @param endpoint The endpoint to update
+     */
+    public abstract CompletableFuture<Void> updateEndpoint(EndpointModel endpoint);
+
+    /**
+     * Fetch all configured providers.
+     *
+     * @return All providers known to gatekeeper
+     */
+    public abstract CompletableFuture<List<ProviderModel>> fetchProviders();
+
+    /**
+     * Create a new provider.
+     *
+     * @param provider A partially-filled provider
+     *
+     * @return The finalised provider
+     */
+    public abstract CompletableFuture<ProviderModel> createProvider(ProviderModel provider);
+
+    /**
+     * Fetch a provider by its UUID.
+     *
+     * @param uuid The UUID of the provider
+     *
+     * @return The specified provider
+     */
+    public abstract CompletableFuture<ProviderModel> fetchProvider(UUID uuid);
+
+    /**
+     * Fetch a provider by its ID.
+     *
+     * @param id The ID of the provider
+     *
+     * @return The specified provider
+     */
+    public abstract CompletableFuture<ProviderModel> fetchProvider(String id);
 }

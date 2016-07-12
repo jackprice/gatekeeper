@@ -16,6 +16,11 @@ public class HttpResponseException extends Exception {
     protected String message;
 
     /**
+     * Extra detail in this message.
+     */
+    protected String detail;
+
+    /**
      * Default constructor.
      *
      * @param code    The HTTP status code of this exception
@@ -27,6 +32,23 @@ public class HttpResponseException extends Exception {
 
         this.code = code;
         this.message = message;
+    }
+
+    /**
+     * Constructor with extra information
+     *
+     * @param code    The HTTP status code of this exception
+     * @param message A description of this status
+     * @param detail  Additional information about this exception
+     */
+    public HttpResponseException(Integer code, String message, String detail) {
+        assert null != code;
+        assert null != message;
+        assert null != detail;
+
+        this.code = code;
+        this.message = message;
+        this.detail = detail;
     }
 
     /**
@@ -42,5 +64,12 @@ public class HttpResponseException extends Exception {
     @Override
     public String getMessage() {
         return message;
+    }
+
+    /**
+     * @return Any extra information for this message
+     */
+    public String getDetail() {
+        return detail;
     }
 }

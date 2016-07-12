@@ -262,6 +262,7 @@ public class Client implements Closeable {
         Map<String, Object> map = new HashMap<>();
 
         map.put("TTL", "30s");
+        map.put("LockDelay", "0s");
 
         JSONObject data = new JSONObject(map);
 

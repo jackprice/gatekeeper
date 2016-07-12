@@ -2,9 +2,10 @@ package io.gatekeeper.node.service.backend;
 
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.backend.LocalBackendConfiguration;
-import io.gatekeeper.model.DomainModel;
 import io.gatekeeper.model.EndpointModel;
+import io.gatekeeper.model.ProviderModel;
 import io.gatekeeper.node.service.BackendService;
+import io.gatekeeper.node.service.ProviderService;
 import io.gatekeeper.node.service.ReplicationService;
 
 import java.util.ArrayList;
@@ -17,8 +18,10 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
 
     private List<EndpointModel> endpoints = new ArrayList<>();
 
-    public LocalBackendService(Configuration configuration, ReplicationService replication) throws Exception {
-        super(configuration, replication);
+    private List<ProviderModel> providers = new ArrayList<>();
+
+    public LocalBackendService(Configuration configuration, ReplicationService replication, ProviderService providers) throws Exception {
+        super(configuration, replication, providers);
     }
 
     @Override
@@ -33,17 +36,17 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
     public CompletableFuture<EndpointModel> fetchEndpoint(UUID id) {
         List<EndpointModel> matches = this.endpoints
             .stream()
-            .filter((endpoint -> endpoint.id().equals(id)))
+            .filter((endpoint -> endpoint.getUuid().equals(id)))
             .collect(Collectors.toList());
 
         return CompletableFuture.completedFuture(matches.size() == 1 ? matches.get(0) : null);
     }
 
     @Override
-    public CompletableFuture<EndpointModel> fetchEndpoint(DomainModel domain) {
+    public CompletableFuture<EndpointModel> fetchEndpoint(String domain) {
         List<EndpointModel> matches = this.endpoints
             .stream()
-            .filter((endpoint -> endpoint.contains(domain)))
+            .filter((endpoint -> endpoint.containsDomain(domain)))
             .collect(Collectors.toList());
 
         return CompletableFuture.completedFuture(matches.size() == 1 ? matches.get(0) : null);
@@ -63,10 +66,70 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<List<EndpointModel>> fetchEndpointsByTag(String tag) {
+        List<EndpointModel> matches = this.endpoints
+            .stream()
+            .filter((endpoint -> endpoint.containsTag(tag)))
+            .collect(Collectors.toList());
+
+        List<EndpointModel> endpoints = (List<EndpointModel>) ((ArrayList) matches).clone();
+
+        return CompletableFuture.completedFuture(endpoints);
+    }
+
+    @Override
     public CompletableFuture<EndpointModel> createEndpoint(EndpointModel endpoint) {
         this.endpoints.add(endpoint);
 
         return CompletableFuture.completedFuture(endpoint);
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteEndpoint(EndpointModel endpoint) {
+        this.endpoints.removeIf((match) -> endpoint.getUuid().equals(match.getUuid()));
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> updateEndpoint(EndpointModel endpoint) {
+        this.endpoints.removeIf((match) -> endpoint.getUuid().equals(match.getUuid()));
+        this.endpoints.add(endpoint);
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<List<ProviderModel>> fetchProviders() {
+        return CompletableFuture.completedFuture(this.providers);
+    }
+
+    @Override
+    public CompletableFuture<ProviderModel> createProvider(ProviderModel provider) {
+        this.providers.add(provider);
+
+        return CompletableFuture.completedFuture(provider);
+    }
+
+    @Override
+    public CompletableFuture<ProviderModel> fetchProvider(UUID uuid) {
+        List<ProviderModel> matches = this.providers
+            .stream()
+            .filter((endpoint -> endpoint.getUuid().equals(uuid)))
+            .collect(Collectors.toList());
+
+        return CompletableFuture.completedFuture(matches.size() == 1 ? matches.get(0) : null);
+    }
+
+    @Override
+    public CompletableFuture<ProviderModel> fetchProvider(String id) {
+        List<ProviderModel> matches = this.providers
+            .stream()
+            .filter((endpoint -> endpoint.getId().equals(id)))
+            .collect(Collectors.toList());
+
+        return CompletableFuture.completedFuture(matches.size() == 1 ? matches.get(0) : null);
     }
 
     @Override

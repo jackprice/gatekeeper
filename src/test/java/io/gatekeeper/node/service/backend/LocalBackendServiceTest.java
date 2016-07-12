@@ -1,6 +1,9 @@
 package io.gatekeeper.node.service.backend;
 
 import io.gatekeeper.configuration.Configuration;
+import io.gatekeeper.configuration.data.backend.LocalBackendConfiguration;
+import io.gatekeeper.configuration.data.replication.LocalReplicationConfiguration;
+import io.gatekeeper.node.service.ProviderService;
 import io.gatekeeper.node.service.ReplicationService;
 import io.gatekeeper.node.service.replication.common.Node;
 import io.gatekeeper.node.service.replication.common.ReplicationInformation;
@@ -16,9 +19,9 @@ public class LocalBackendServiceTest {
     public void testStart() throws Exception {
         Configuration configuration = new Configuration();
 
-        Con
+        configuration.backend = new LocalBackendConfiguration();
 
-        LocalBackendService service = new LocalBackendService(configuration, mockReplicationService(configuration));
+        LocalBackendService service = new LocalBackendService(configuration, mockReplicationService(configuration), new ProviderService());
 
         service.start().get();
     }

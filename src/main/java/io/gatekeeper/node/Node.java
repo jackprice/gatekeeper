@@ -4,10 +4,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.GatekeeperException;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.logging.Loggers;
-import io.gatekeeper.node.service.ApiService;
-import io.gatekeeper.node.service.BackendService;
-import io.gatekeeper.node.service.ReplicationService;
-import io.gatekeeper.node.service.Service;
+import io.gatekeeper.node.service.*;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -113,6 +110,7 @@ public class Node implements Closeable {
         services.service(ReplicationService.class, createReplicationService());
 
         if (configuration.replication.server) {
+            services.service(ProviderService.class, createProviderService());
             services.service(BackendService.class, createBackendService());
             services.service(ApiService.class, createApiService());
         }
@@ -136,6 +134,11 @@ public class Node implements Closeable {
     }
 
     @SuppressWarnings("unchecked")
+    private ProviderService createProviderService() {
+        return new ProviderService();
+    }
+
+    @SuppressWarnings("unchecked")
     private BackendService createBackendService() {
         Class<BackendService> clazz = (Class<BackendService>) this.configuration.backend.serviceClass();
 
@@ -143,8 +146,12 @@ public class Node implements Closeable {
         assert BackendService.class.isAssignableFrom(clazz);
 
         try {
-            return clazz.getConstructor(Configuration.class, ReplicationService.class)
-                .newInstance(this.configuration, services.service(ReplicationService.class));
+            return clazz.getConstructor(Configuration.class, ReplicationService.class, ProviderService.class)
+                .newInstance(
+                    this.configuration,
+                    services.service(ReplicationService.class),
+                    services.service(ProviderService.class)
+                );
         } catch (Exception exception) {
             throw new GatekeeperException(
                 String.format("Failed to create backend service %s", clazz.getCanonicalName()),

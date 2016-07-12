@@ -1,6 +1,5 @@
 package io.gatekeeper.api;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import io.gatekeeper.node.ServiceContainer;
 import io.gatekeeper.node.service.Service;
@@ -9,8 +8,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -24,7 +21,7 @@ public abstract class AbstractController {
     /**
      * A default timeout value for controllers making requests to services.
      */
-    protected final static long timeout = 1000;
+    protected final static long timeout = 5000;
 
     /**
      * The unit for default {@link #timeout timeout values}
@@ -115,6 +112,15 @@ public abstract class AbstractController {
      */
     protected String query(String name) {
         return context.request().getParam(name);
+    }
+
+    /**
+     * Set the status code of the response.
+     *
+     * @param status The status code to set (defaults to 200 if not specified)
+     */
+    protected void status(Integer status) {
+        context.response().setStatusCode(status);
     }
 
     /**

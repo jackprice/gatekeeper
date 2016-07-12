@@ -12,43 +12,64 @@ public class EndpointModelTest {
     public void testCreate() {
         EndpointModel endpoint = new EndpointModel();
 
-        assertNotNull(endpoint.id());
+        assertNotNull(endpoint.getUuid());
 
-        DomainModel domain = new DomainModel("foo.com");
+        String domain = "foo.com";
 
-        endpoint.add(domain);
+        endpoint.addDomain(domain);
 
-        assertEquals(Collections.singletonList(domain), endpoint.domains());
+        assertEquals(Collections.singletonList(domain), endpoint.getDomains());
     }
 
     @Test
     public void testContains() {
         EndpointModel endpoint = new EndpointModel();
 
-        assertNotNull(endpoint.id());
+        assertNotNull(endpoint.getUuid());
 
-        DomainModel domain = new DomainModel("foo.com");
+        String domain = "foo.com";
 
-        endpoint.add(domain);
+        endpoint.addDomain(domain);
 
-        assertTrue(endpoint.contains(domain));
-        assertTrue(endpoint.contains(new DomainModel("foo.com")));
+        assertTrue(endpoint.containsDomain(domain));
+        assertTrue(endpoint.containsDomain("foo.com"));
     }
 
     @Test
     public void testMatches() {
         EndpointModel endpoint = new EndpointModel();
 
-        assertNotNull(endpoint.id());
+        assertNotNull(endpoint.getUuid());
 
-        DomainModel domain = new DomainModel("foo.bar.com");
+        String domain = "foo.bar.com";
 
-        endpoint.add(domain);
+        endpoint.addDomain(domain);
 
+        // An exact domain match is always true
+        assertTrue(endpoint.matches("foo.bar.com"));
+
+        // Anything below the matching domain is also true
+        assertTrue(endpoint.matches("com"));
         assertTrue(endpoint.matches("bar.com"));
+
+        // Wildcards allow matching on any domain component
         assertTrue(endpoint.matches("*.bar.com"));
+
+        // ...as well as following the subdomain matching rule
+        assertTrue(endpoint.matches("*.com"));
+
+        // There can be multiple wildcards at any place
+        assertTrue(endpoint.matches("*.*.com"));
+
+        // However anything above the matched domain is not a match
+        assertFalse(endpoint.matches("below.foo.bar.com"));
+
+        assertTrue(endpoint.matches("*.bar.com"));
+        assertTrue(endpoint.matches("*.com"));
         assertTrue(endpoint.matches("*"));
-        assertFalse(endpoint.matches("example.com"));
-        assertFalse(endpoint.matches("example.foo.bar.com"));
+        assertTrue(endpoint.matches("bar.com"));
+        assertFalse(endpoint.matches("foo.com"));
+        assertFalse(endpoint.matches("*.foo.foo.com"));
+        assertFalse(endpoint.matches("*.foo.bar.com"));
     }
 }
