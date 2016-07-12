@@ -533,6 +533,20 @@ definitions:
         description: The DN of this certificate
         type: string
 
+      expires:
+        description: The date this certificate expires
+        type: string
+        format: 'date-time'
+
+      provider:
+        description: The UUID of the provider that generated this certificate
+        type: string
+
+      created:
+        description: The date this certificate was created, i.e. became known to gatekeeper
+        type: string
+        format: 'date-time'
+
       certificate:
         description: The raw data in this certificate, in PEM format
         type: string
