@@ -165,6 +165,10 @@ public class ApiService implements Service {
     ) {
         Controller controller;
 
+        logger.info(
+            String.format("Received HTTP %s %s", context.request().method().toString(), context.request().uri())
+        );
+
         // Configure CORS properly
         // TODO: Allow this to come from a configuration value?
         context.response().putHeader("Access-Control-Allow-Origin", "*");
@@ -177,6 +181,13 @@ public class ApiService implements Service {
             sendResponseFromObject(context, result);
         } catch (Exception exception) {
             sendResponseFromException(context, exception);
+        } finally {
+            logger.info(String.format(
+                "Sent %d for %s %s",
+                context.response().getStatusCode(),
+                context.request().method().toString(),
+                context.request().uri()
+            ));
         }
     }
 

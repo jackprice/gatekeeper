@@ -113,6 +113,7 @@ public class Node implements Closeable {
             services.service(ProviderService.class, createProviderService());
             services.service(BackendService.class, createBackendService());
             services.service(ApiService.class, createApiService());
+            services.service(OutputService.class, createOutputService());
         }
     }
 
@@ -163,6 +164,10 @@ public class Node implements Closeable {
     @SuppressWarnings("unchecked")
     private ApiService createApiService() {
         return new ApiService(configuration, services);
+    }
+
+    private OutputService createOutputService() {
+        return OutputService.build(configuration, services);
     }
 
 }

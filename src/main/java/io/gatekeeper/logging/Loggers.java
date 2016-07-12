@@ -20,4 +20,8 @@ public class Loggers {
         return Logger.getLogger("api");
     }
 
+    public static Logger getOutputLogger() {
+        return Logger.getLogger("output");
+    }
+
 }

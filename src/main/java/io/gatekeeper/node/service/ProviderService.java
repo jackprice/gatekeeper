@@ -11,7 +11,6 @@ import io.gatekeeper.node.ServiceContainer;
 import io.gatekeeper.node.ServiceContainerAware;
 import io.gatekeeper.node.service.provider.AbstractProvider;
 import io.gatekeeper.node.service.provider.SelfSignedProvider;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.lang.reflect.Constructor;
 import java.security.Security;
@@ -249,8 +248,6 @@ public class ProviderService extends ServiceContainerAware implements Service {
 
     @Override
     public CompletableFuture start() {
-        Security.addProvider(new BouncyCastleProvider());
-
         return CompletableFuture.completedFuture(null);
     }
 
