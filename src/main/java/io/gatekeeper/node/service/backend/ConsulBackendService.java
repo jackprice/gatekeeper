@@ -3,10 +3,7 @@ package io.gatekeeper.node.service.backend;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.backend.ConsulBackendConfiguration;
 import io.gatekeeper.configuration.data.backend.LocalBackendConfiguration;
-import io.gatekeeper.model.EndpointModel;
-import io.gatekeeper.model.EndpointModelBuilder;
-import io.gatekeeper.model.ProviderModel;
-import io.gatekeeper.model.ProviderModelBuilder;
+import io.gatekeeper.model.*;
 import io.gatekeeper.node.service.BackendService;
 import io.gatekeeper.node.service.ProviderService;
 import io.gatekeeper.node.service.ReplicationService;
@@ -154,6 +151,44 @@ public class ConsulBackendService extends BackendService<LocalBackendConfigurati
         CompletableFuture<ProviderModel> future = new CompletableFuture<>();
 
         executor.execute(new FetchProviderByIdRunnable(replication, id, future, client));
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<ProviderModel> fetchProviderUnsafe(String id) {
+        CompletableFuture<ProviderModel> future = new CompletableFuture<>();
+
+        executor.execute(new FetchProviderByIdUnsafeRunnable(id, future, client));
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<CertificateModel> fetchCertificate(EndpointModel endpoint) {
+        CompletableFuture<CertificateModel> future = new CompletableFuture<>();
+
+        executor.execute(new FetchCertificateRunnable(replication, providers, endpoint, future, client));
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<CertificateModel> fetchCertificateBlocking(EndpointModel endpoint) {
+        CompletableFuture<CertificateModel> future = new CompletableFuture<>();
+
+        executor.execute(new FetchCertificateBlockingRunnable(replication, providers, endpoint, future, client));
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Void> updateCertificate(
+        EndpointModel endpoint, CertificateModel certificate
+    ) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        executor.execute(new UpdateCertificateRunnable(replication, endpoint, certificate, future, client));
 
         return future;
     }

@@ -164,7 +164,7 @@ paths:
           type: string
         - in: query
           name: wait
-          description: If provided, this request will hang until a certificate is available, or the given timeout is elapsed
+          description: If provided, this request will hang this many seconds until a certificate is available, or the given timeout is elapsed
           required: false
           type: string
       responses:
@@ -190,7 +190,7 @@ paths:
           type: string
         - in: query
           name: wait
-          description: If provided, this request will hang until a certificate is available, or the given timeout is elapsed
+          description: If provided, this request will hang this many seconds until a certificate is available, or the given timeout is elapsed
           required: false
           type: string
       responses:

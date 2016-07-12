@@ -17,6 +17,9 @@ public class EndpointModelBuilder extends AbstractModelBuilder<Endpoint, Endpoin
         if (object.has("uuid")) {
             model.setUuid(UUID.fromString(object.getString("uuid")));
         }
+        if (object.has("certificate")) {
+            model.setCertificate(UUID.fromString(object.getString("certificate")));
+        }
         if (object.has("domains")) {
             object.getJSONArray("domains")
                 .forEach((domain) -> {
@@ -44,6 +47,11 @@ public class EndpointModelBuilder extends AbstractModelBuilder<Endpoint, Endpoin
         JSONObject object = new JSONObject();
 
         object.put("uuid", model.getUuid().toString());
+
+        if (model.getCertificate() != null) {
+            object.put("certificate", model.getCertificate().toString());
+        }
+
         object.put("domains", model.getDomains());
         object.put("tags", model.getTags());
         object.put("provider", model.getProvider());

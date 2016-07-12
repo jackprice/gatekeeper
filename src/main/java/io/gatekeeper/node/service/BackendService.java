@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.BackendConfiguration;
 import io.gatekeeper.logging.Loggers;
+import io.gatekeeper.model.CertificateModel;
 import io.gatekeeper.model.EndpointModel;
 import io.gatekeeper.model.ProviderModel;
 import io.gatekeeper.node.service.backend.common.crypto.EncryptionProvider;
@@ -42,7 +43,8 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
 
     protected final ProviderService providers;
 
-    public BackendService(Configuration configuration, ReplicationService replication, ProviderService providers) throws Exception {
+    public BackendService(Configuration configuration, ReplicationService replication, ProviderService providers) throws
+        Exception {
         assert null != configuration;
         assert null != replication;
         assert null != providers;
@@ -201,4 +203,39 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
      * @return The specified provider
      */
     public abstract CompletableFuture<ProviderModel> fetchProvider(String id);
+
+    /**
+     * Fetch a provider by its ID without acquiring a global lock first.
+     *
+     * @param id The ID of the provider
+     *
+     * @return The specified provider
+     */
+    public abstract CompletableFuture<ProviderModel> fetchProviderUnsafe(String id);
+
+    /**
+     * Fetch the certificate for the given endpoint.
+     *
+     * @param endpoint The endpoint to query
+     *
+     * @return The certificate, if it exists
+     */
+    public abstract CompletableFuture<CertificateModel> fetchCertificate(EndpointModel endpoint);
+
+    /**
+     * Fetch the certificate for the given endpoint, blocking until the certificate is generated.
+     *
+     * @param endpoint The endpoint to query
+     *
+     * @return The certificate, if it exists
+     */
+    public abstract CompletableFuture<CertificateModel> fetchCertificateBlocking(EndpointModel endpoint);
+
+    /**
+     * Update the certificate on the given endpoint
+     *
+     * @param endpoint    The endpoint to update
+     * @param certificate The new certificate
+     */
+    public abstract CompletableFuture<Void> updateCertificate(EndpointModel endpoint, CertificateModel certificate);
 }

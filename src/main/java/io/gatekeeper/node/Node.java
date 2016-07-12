@@ -135,7 +135,7 @@ public class Node implements Closeable {
 
     @SuppressWarnings("unchecked")
     private ProviderService createProviderService() {
-        return new ProviderService();
+        return ProviderService.build(services);
     }
 
     @SuppressWarnings("unchecked")

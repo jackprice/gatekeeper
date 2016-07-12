@@ -2,6 +2,7 @@ package io.gatekeeper.node.service.backend;
 
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.data.backend.LocalBackendConfiguration;
+import io.gatekeeper.model.CertificateModel;
 import io.gatekeeper.model.EndpointModel;
 import io.gatekeeper.model.ProviderModel;
 import io.gatekeeper.node.service.BackendService;
@@ -130,6 +131,28 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
             .collect(Collectors.toList());
 
         return CompletableFuture.completedFuture(matches.size() == 1 ? matches.get(0) : null);
+    }
+
+    @Override
+    public CompletableFuture<ProviderModel> fetchProviderUnsafe(String id) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<CertificateModel> fetchCertificate(EndpointModel endpoint) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<CertificateModel> fetchCertificateBlocking(EndpointModel endpoint) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> updateCertificate(
+        EndpointModel endpoint, CertificateModel certificate
+    ) {
+        return null;
     }
 
     @Override

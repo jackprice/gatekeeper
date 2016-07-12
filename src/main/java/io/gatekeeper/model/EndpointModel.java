@@ -33,6 +33,11 @@ public class EndpointModel extends AbstractModel {
      */
     protected String dn;
 
+    /**
+     * The certificate currently set for this endpoint.
+     */
+    protected UUID certificate;
+
     public List<String> getDomains() {
         return domains;
     }
@@ -67,6 +72,14 @@ public class EndpointModel extends AbstractModel {
 
     public LdapName parseNd() throws InvalidNameException {
         return new LdapName(getDn());
+    }
+
+    public UUID getCertificate() {
+        return certificate;
+    }
+
+    public void setCertificate(UUID certificate) {
+        this.certificate = certificate;
     }
 
     /**
