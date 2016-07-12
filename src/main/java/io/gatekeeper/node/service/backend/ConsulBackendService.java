@@ -183,6 +183,24 @@ public class ConsulBackendService extends BackendService<LocalBackendConfigurati
     }
 
     @Override
+    public CompletableFuture<CertificateModel> reissueCertificate(EndpointModel endpoint) {
+        CompletableFuture<CertificateModel> future = new CompletableFuture<>();
+
+        executor.execute(new ReissueCertificateRunnable(replication, providers, endpoint, future, client));
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<CertificateModel> reissueCertificateBlocking(EndpointModel endpoint) {
+        CompletableFuture<CertificateModel> future = new CompletableFuture<>();
+
+        executor.execute(new ReissueCertificateBlockingRunnable(replication, providers, endpoint, future, client));
+
+        return future;
+    }
+
+    @Override
     public CompletableFuture<Void> updateCertificate(
         EndpointModel endpoint, CertificateModel certificate
     ) {

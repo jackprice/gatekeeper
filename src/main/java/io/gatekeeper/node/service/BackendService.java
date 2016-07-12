@@ -232,6 +232,24 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
     public abstract CompletableFuture<CertificateModel> fetchCertificateBlocking(EndpointModel endpoint);
 
     /**
+     * Reissue the certificate for the given endpoint.
+     *
+     * @param endpoint The endpoint to reissue to
+     *
+     * @return The certificate, if it exists
+     */
+    public abstract CompletableFuture<CertificateModel> reissueCertificate(EndpointModel endpoint);
+
+    /**
+     * Reissue the certificate for the given endpoint, blocking until the certificate is generated.
+     *
+     * @param endpoint The endpoint to reissue to
+     *
+     * @return The certificate, if it exists
+     */
+    public abstract CompletableFuture<CertificateModel> reissueCertificateBlocking(EndpointModel endpoint);
+
+    /**
      * Update the certificate on the given endpoint
      *
      * @param endpoint    The endpoint to update

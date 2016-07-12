@@ -132,6 +132,7 @@ public class ApiService implements Service {
         routes.put(new PathDefinition("/api/version", HttpMethod.GET), GetVersion.class);
         routes.put(new PathDefinition("/api/replication/info", HttpMethod.GET), GetReplicationInfo.class);
         routes.put(new PathDefinition("/api/endpoint/:id/certificate", HttpMethod.GET), GetCertificate.class);
+        routes.put(new PathDefinition("/api/endpoint/:id/certificate", HttpMethod.POST), ReissueCertificate.class);
         routes.put(new PathDefinition("/api/endpoint/:id", HttpMethod.PATCH), PatchEndpoint.class);
         routes.put(new PathDefinition("/api/endpoint/:id", HttpMethod.GET), GetEndpoint.class);
         routes.put(new PathDefinition("/api/endpoint", HttpMethod.GET), GetEndpoints.class);

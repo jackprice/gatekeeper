@@ -217,13 +217,13 @@ paths:
           type: string
         - in: body
           name: certificate
-          description: If provided, this request will hang until a certificate is available, or the given timeout is elapsed
+          description: The certificate data to overwrite
           required: true
           schema:
             $ref: '#/definitions/ManualCertificate'
       responses:
         201:
-          description: Certificate reissued
+          description: Certificate updated
           schema:
             $ref: '#/definitions/Certificate'
         404:

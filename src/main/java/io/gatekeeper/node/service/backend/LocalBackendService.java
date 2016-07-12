@@ -149,6 +149,16 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
     }
 
     @Override
+    public CompletableFuture<CertificateModel> reissueCertificate(EndpointModel endpoint) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<CertificateModel> reissueCertificateBlocking(EndpointModel endpoint) {
+        return null;
+    }
+
+    @Override
     public CompletableFuture<Void> updateCertificate(
         EndpointModel endpoint, CertificateModel certificate
     ) {
