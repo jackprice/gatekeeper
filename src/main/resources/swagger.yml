@@ -469,6 +469,7 @@ definitions:
         default: self-signed
         enum:
           - self-signed
+          - manual
 
       configuration:
         description: Additional provider-specific configuration
@@ -492,6 +493,7 @@ definitions:
         default: self-signed
         enum:
           - self-signed
+          - manual
 
       configuration:
         description: Additional provider-specific configuration

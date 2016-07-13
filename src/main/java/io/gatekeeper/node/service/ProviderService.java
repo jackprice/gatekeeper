@@ -13,7 +13,6 @@ import io.gatekeeper.node.service.provider.AbstractProvider;
 import io.gatekeeper.node.service.provider.SelfSignedProvider;
 
 import java.lang.reflect.Constructor;
-import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -266,6 +265,8 @@ public class ProviderService extends ServiceContainerAware implements Service {
     /**
      * Convert a provider model enum into its corresponding service class.
      *
+     * TODO: Allow these to be configured at runtime
+     *
      * @param type The provider type enum
      *
      * @return The corresponding service class
@@ -275,6 +276,9 @@ public class ProviderService extends ServiceContainerAware implements Service {
     private Class<? extends AbstractProvider> getClassFromType(Provider.TypeEnum type) throws Exception {
         switch (type) {
             case SIGNED:
+                return SelfSignedProvider.class;
+
+            case MANUAL:
                 return SelfSignedProvider.class;
 
             default:
