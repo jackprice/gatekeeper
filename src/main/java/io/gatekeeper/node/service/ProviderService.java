@@ -10,6 +10,7 @@ import io.gatekeeper.model.ProviderModel;
 import io.gatekeeper.node.ServiceContainer;
 import io.gatekeeper.node.ServiceContainerAware;
 import io.gatekeeper.node.service.provider.AbstractProvider;
+import io.gatekeeper.node.service.provider.AcmeProvider;
 import io.gatekeeper.node.service.provider.SelfSignedProvider;
 
 import java.lang.reflect.Constructor;
@@ -35,7 +36,8 @@ public class ProviderService extends ServiceContainerAware implements Service {
      */
     public ProviderService() {
         logger = Loggers.getNodeLogger();
-        this.executor = (ThreadPoolExecutor) Executors.newCachedThreadPool(
+        this.executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(
+            2,
             (new ThreadFactoryBuilder())
                 .setNameFormat("Provider Service %d")
                 .build()
@@ -280,6 +282,9 @@ public class ProviderService extends ServiceContainerAware implements Service {
 
             case MANUAL:
                 return SelfSignedProvider.class;
+
+            case ACME:
+                return AcmeProvider.class;
 
             default:
                 throw new Exception("Invalid provider type");

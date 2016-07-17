@@ -3,18 +3,25 @@ package io.gatekeeper.node.service.provider;
 import io.gatekeeper.model.CertificateModel;
 import io.gatekeeper.model.EndpointModel;
 import io.gatekeeper.model.ProviderModel;
+import io.gatekeeper.node.ServiceContainerAware;
+import org.apache.commons.codec.binary.Base64;
+import sun.security.provider.X509Factory;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
-public abstract class AbstractProvider implements AutoCloseable {
+public abstract class AbstractProvider extends ServiceContainerAware implements AutoCloseable {
 
     /**
      * A shared executor for providers to work inside.
@@ -37,6 +44,11 @@ public abstract class AbstractProvider implements AutoCloseable {
     protected UUID uuid;
 
     /**
+     * Internally stored data that is persisted by this provider.
+     */
+    protected Map<String, Object> data = new HashMap<>();
+
+    /**
      * Default public constructor.
      *
      * @param executor An executor context for this providers threads
@@ -54,12 +66,40 @@ public abstract class AbstractProvider implements AutoCloseable {
      *
      * @throws Exception
      */
-    static KeyPair generateRSA(Integer bits) throws Exception {
+    public static KeyPair generateRSA(Integer bits) throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 
         generator.initialize(2048, SecureRandom.getInstanceStrong());
 
         return generator.genKeyPair();
+    }
+
+    public static String encodePrivateKey(PrivateKey key) {
+        Base64 encoder = new Base64(64);
+
+        StringBuilder string = new StringBuilder();
+
+        string.append("-----BEGIN RSA PRIVATE KEY-----\n");
+
+        string.append(new String(encoder.encode(key.getEncoded())));
+
+        string.append("-----END RSA PRIVATE KEY-----");
+
+        return string.toString();
+    }
+
+    public static String encodeCertificate(X509Certificate certificate) throws Exception {
+        Base64 encoder = new Base64(64);
+
+        StringBuilder string = new StringBuilder();
+
+        string.append(X509Factory.BEGIN_CERT + "\n");
+
+        string.append(new String(encoder.encode(certificate.getEncoded())));
+
+        string.append(X509Factory.END_CERT);
+
+        return string.toString();
     }
 
     /**
