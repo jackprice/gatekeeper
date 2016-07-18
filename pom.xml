@@ -7,7 +7,7 @@
     <groupId>io.gatekeeper</groupId>
     <artifactId>gatekeeper</artifactId>
 
-    <version>0.0.0</version>
+    <version>0.1.0-alpha</version>
 
     <name>gatekeeper</name>
     <description>A highly-available, distributed and secure SSL-termination manager</description>

@@ -16,10 +16,13 @@ public class Version {
      *
      * New versions are created by adding their identifier here.
      */
+    public static final int V0_1_0_ID = 10000;
+    public static final Version V0_1_0 = new Version(V0_1_0_ID);
+
     public static final int V0_0_0_ID = 0;
     public static final Version V0_0_0 = new Version(V0_0_0_ID);
 
-    public static final Version CURRENT = V0_0_0;
+    public static final Version CURRENT = V0_1_0;
 
     public final int id;
     public final byte major;
