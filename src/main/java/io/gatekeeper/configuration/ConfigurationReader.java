@@ -74,7 +74,7 @@ public class ConfigurationReader {
      * The trace parameter is used to keep track of nested configuration parameters, so we can provide a detailed
      * overview of any configuration errors.
      */
-    private void addDataToConfigurationObject(
+    protected void addDataToConfigurationObject(
         ConfigurationInterface object,
         Map<String, Object> data,
         String trace
@@ -108,7 +108,7 @@ public class ConfigurationReader {
     }
 
     @SuppressWarnings("unchecked")
-    private <U> U instantiateObjectFromData(Class<U> clazz, Object data, String trace) throws
+    protected  <U> U instantiateObjectFromData(Class<U> clazz, Object data, String trace) throws
         IllegalAccessException,
         InstantiationException {
         assert null != clazz;
@@ -150,7 +150,7 @@ public class ConfigurationReader {
     }
 
     @SuppressWarnings("unchecked")
-    private Object instantiateProperty(Field field, Config config, Object data, String trace)
+    protected Object instantiateProperty(Field field, Config config, Object data, String trace)
         throws InstantiationException, IllegalAccessException {
         assert null != field;
         assert null != config;
@@ -176,7 +176,7 @@ public class ConfigurationReader {
         }
     }
 
-    private Map<Config, Field> getFieldsForClass(Class clazz) {
+    protected Map<Config, Field> getFieldsForClass(Class clazz) {
         assert null != clazz;
 
         Map<Config, Field> properties = new HashMap<>();
@@ -202,7 +202,7 @@ public class ConfigurationReader {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    private <T extends ConfigurationInterface> T createInstance(Class<T> clazz)
+    protected  <T extends ConfigurationInterface> T createInstance(Class<T> clazz)
         throws IllegalAccessException, InstantiationException {
         assert null != clazz;
         assert ConfigurationInterface.class.isAssignableFrom(clazz);
@@ -220,7 +220,7 @@ public class ConfigurationReader {
      * @return The instantiated class
      */
     @SuppressWarnings("unchecked")
-    private <T extends ConfigurationInterface> T createAbstractInstance(
+    protected  <T extends ConfigurationInterface> T createAbstractInstance(
         Class<T> clazz,
         Map<String, Object> data,
         String trace

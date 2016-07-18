@@ -3,6 +3,7 @@ package io.gatekeeper.cli;
 import io.gatekeeper.InvalidConfigurationException;
 import io.gatekeeper.configuration.Configuration;
 import io.gatekeeper.configuration.DirectoryParser;
+import io.gatekeeper.configuration.EnvironmentConfigurationReader;
 import io.gatekeeper.configuration.FileParser;
 import org.apache.commons.cli.*;
 
@@ -52,7 +53,8 @@ public abstract class AbstractCommandWithConfiguration extends AbstractCommand {
 
         line = parser.parse(options, args);
 
-        configuration = new Configuration();
+        configuration = new EnvironmentConfigurationReader()
+            .createConfigurationObjectFromEnvironment(Configuration.class);
 
         for (Option option : line.getOptions()) {
             switch (option.getLongOpt()) {
