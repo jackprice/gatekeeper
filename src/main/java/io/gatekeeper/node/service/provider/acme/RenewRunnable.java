@@ -2,6 +2,7 @@ package io.gatekeeper.node.service.provider.acme;
 
 import io.gatekeeper.model.CertificateModel;
 import io.gatekeeper.model.EndpointModel;
+import io.gatekeeper.node.service.backend.common.ReplicatedMap;
 import io.gatekeeper.node.service.provider.AbstractProvider;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;
@@ -41,9 +42,9 @@ public class RenewRunnable implements Runnable {
     private CompletableFuture<CertificateModel> future;
 
     /**
-     * A callback to be used internally for storing data on this provider.
+     * Somewhere to store challenges.
      */
-    private Function<Map<String, Object>, CompletableFuture<Void>> setDataCallback;
+    private ReplicatedMap<Challenge> challenges;
 
     /**
      * Public constructor.
@@ -56,12 +57,12 @@ public class RenewRunnable implements Runnable {
         Configuration configuration,
         EndpointModel endpoint,
         CompletableFuture<CertificateModel> future,
-        Function<Map<String, Object>, CompletableFuture<Void>> setDataCallback
+        ReplicatedMap<Challenge> challenges
     ) {
         this.configuration = configuration;
         this.endpoint = endpoint;
         this.future = future;
-        this.setDataCallback = setDataCallback;
+        this.challenges = challenges;
     }
 
     /**
@@ -143,14 +144,10 @@ public class RenewRunnable implements Runnable {
 
         challenge.authorize(registration);
 
+        this.challenges.put(challenge.getToken(), challenge);
+
         String token = challenge.getToken();
         String content = challenge.getAuthorization();
-
-        Map<String, Object> data = new HashMap<>();
-
-        data.put(token, content);
-
-        setDataCallback.apply(data).get();
 
         client.triggerChallenge(registration, challenge);
 

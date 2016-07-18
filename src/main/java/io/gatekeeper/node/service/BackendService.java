@@ -7,9 +7,11 @@ import io.gatekeeper.logging.Loggers;
 import io.gatekeeper.model.CertificateModel;
 import io.gatekeeper.model.EndpointModel;
 import io.gatekeeper.model.ProviderModel;
+import io.gatekeeper.node.service.backend.common.ReplicatedMap;
 import io.gatekeeper.node.service.backend.common.crypto.EncryptionProvider;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -104,6 +106,15 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
     public void releaseWriteLock() throws InterruptedException {
         replication.unlock(LOCK_WRITE);
     }
+
+    /**
+     * Get replicated map from the backend.
+     *
+     * @param uuid The unique ID for this replicated map
+     *
+     * @return The replicated map
+     */
+    public abstract <V extends Serializable> ReplicatedMap<V> getReplicatedMap(UUID uuid);
 
     /**
      * Returns all endpoints known to the system.

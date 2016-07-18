@@ -8,7 +8,9 @@ import io.gatekeeper.model.ProviderModel;
 import io.gatekeeper.node.service.BackendService;
 import io.gatekeeper.node.service.ProviderService;
 import io.gatekeeper.node.service.ReplicationService;
+import io.gatekeeper.node.service.backend.common.ReplicatedMap;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,11 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
 
     public LocalBackendService(Configuration configuration, ReplicationService replication, ProviderService providers) throws Exception {
         super(configuration, replication, providers);
+    }
+
+    @Override
+    public <V extends Serializable> ReplicatedMap<V> getReplicatedMap(UUID uuid) {
+        return null;
     }
 
     @Override

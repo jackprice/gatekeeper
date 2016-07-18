@@ -7,9 +7,13 @@ import io.gatekeeper.model.*;
 import io.gatekeeper.node.service.BackendService;
 import io.gatekeeper.node.service.ProviderService;
 import io.gatekeeper.node.service.ReplicationService;
+import io.gatekeeper.node.service.backend.common.ReplicatedMap;
 import io.gatekeeper.node.service.backend.consul.Client;
+import io.gatekeeper.node.service.backend.consul.ConsulReplicatedMap;
 import io.gatekeeper.node.service.backend.consul.runnable.*;
 
+import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,6 +38,23 @@ public class ConsulBackendService extends BackendService<LocalBackendConfigurati
         ProviderService providers
     ) throws Exception {
         this(configuration, replication, providers, Client.build((ConsulBackendConfiguration) configuration.backend));
+    }
+
+    @Override
+    public <V extends Serializable> ReplicatedMap<V> getReplicatedMap(UUID uuid) {
+        return new ConsulReplicatedMap<V>(() -> {
+            CompletableFuture<HashMap<String, V>> future = new CompletableFuture<>();
+
+            executor.execute(new GetReplicatedMapDataRunnable<>(uuid, future, client));
+
+            return future;
+        }, (data) -> {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+
+            executor.execute(new SaveReplicatedMapDataRunnable<>(uuid, data, future, client));
+
+            return future;
+        });
     }
 
     /**
