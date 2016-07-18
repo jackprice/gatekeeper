@@ -1,0 +1,12 @@
+[Unit]
+Description=Gatekeeper Agent
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/gatekeeper/bin/gatekeeper agent --config-dir=/etc/gatekeeper
+User=gatekeeper
+Group=gatekeeper
+
+[Install]
+WantedBy=multi-user.target

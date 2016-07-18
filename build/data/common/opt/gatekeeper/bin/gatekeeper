@@ -1,0 +1,31 @@
+#!/bin/sh
+
+JAVA_OPTS=''
+
+JAVA=$(which java)
+
+if [ $? -ne 0 ]; then
+    echo "Java not found"
+
+    exit 1
+fi
+
+JAVA_VERSION=$($JAVA -version 2>&1 | head -n1 | grep -oE '[0-9]\.[0-9]\.[0-9]')
+
+if [ $? -ne 0 ]; then
+    echo "Could not determine java version"
+
+    exit 1
+fi
+
+(echo $JAVA_VERSION | grep -E '1.8')
+
+if [ $? -ne 0 ]; then
+    echo "Unsupported java version ${JAVA_VERSION}"
+
+    exit 1
+fi
+
+set -e
+
+$JAVA -jar /opt/gatekeeper/java/gatekeeper.jar ${JAVA_OPTS} $@

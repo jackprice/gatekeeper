@@ -1,0 +1,95 @@
+#
+# This is the default gatekeeper configuration file
+#
+
+---
+
+#
+# Replication configuration
+#
+# This section configures replication - how gatekeeper discovers and
+# communicates with other nodes in a cluster
+#
+replication:
+
+  #
+  # Replication type
+  #
+  # Defaults to `local`
+  #
+  # Available types are `local` and `consul`.
+  # Note that the local replication type does not support clustering or
+  # high-availability, so can only provide a single-node cluster.
+  #
+  type: local
+
+  #
+  # If this value is true, this node is eligable to be a server.
+  #
+  # Defaults to `false`
+  #
+  # Server nodes provide the brains of the cluster, and are allowed to perform
+  # operations such as managing endpoints and issuing certificates.
+  # Your cluster must have at least one server to be useful.
+  #
+  server: true
+
+#
+# Backend configuration
+#
+# The backend configuraiton specifies where and how gatekeeper should store
+# data.
+#
+# Remove this section if this node is not configured functioning as a server.
+#
+backend:
+
+  #
+  # Backend type
+  #
+  # Defaults to `local`
+  #
+  # Available types are `local` and `consul`
+  # The local backend provider DOES NOT PERSIST DATA.
+  #
+  type: local
+
+  #
+  # Backend key
+  #
+  # The backend uses the specified key to encrypt data stored. It can be any
+  # free-form text value.
+  #
+  # Change this to a secure value after installation!
+  #
+  key: ReplaceMeWthASecretPhrase
+
+#
+# Outputs configuration
+#
+# Outputs specify a way to output certificates, and a node can have any number.
+#
+outputs: []
+
+  #
+  # Output type
+  #
+  # Available types are `directory`.
+  #
+#- type: directory
+
+  #
+  # Endpoint tag
+  #
+  # This optional section lets you filter the endpoints that this output
+  # recieves by the given tag.
+  #
+#  tags: arbitrary_tag
+
+  #
+  # Endpoint domain filter
+  #
+  # This optional secition lets you filter the endpoint that this output
+  # receives by a wildcard domain filter.
+  #
+#  domains: *.localhost
