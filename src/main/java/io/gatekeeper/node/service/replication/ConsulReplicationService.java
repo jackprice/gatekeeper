@@ -52,7 +52,7 @@ public class ConsulReplicationService extends ReplicationService<ConsulReplicati
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         consulExecutor.execute(() -> {
-            if (replicationConfiguration.server) {
+            if (replicationConfiguration.server && replicationConfiguration.register) {
                 client.registerService().join();
             }
 

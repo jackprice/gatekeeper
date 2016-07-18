@@ -27,6 +27,9 @@ public class ConsulReplicationConfiguration
     @Config(name = "token", type = String.class)
     public String token;
 
+    @Config(name = "register", type = Boolean.class)
+    public Boolean register = true;
+
     @Override
     public void validate() throws InvalidConfigurationException {
         if (this.service == null || this.service.length() == 0) {
@@ -43,6 +46,7 @@ public class ConsulReplicationConfiguration
         this.host = configuration.host;
         this.ttl = configuration.ttl;
         this.token = configuration.token;
+        this.register = configuration.register;
     }
 
     @Override
