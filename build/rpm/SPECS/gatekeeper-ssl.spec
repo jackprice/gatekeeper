@@ -2,7 +2,7 @@
 
 Name:                  gatekeeper-ssl
 Version:               0.1.0
-Release:               1.alpha
+Release:               3.alpha
 License:               ASL 2.0
 URL:                   https://github.com/jackprice/gatekeeper
 Summary:               A highly-available, distributed and secure SSL-termination manager
@@ -19,7 +19,7 @@ Gatekeeper is a highly-available, distributed and secure SSL-termination manager
 %pre
 getent group gatekeeper >/dev/null || groupadd -r gatekeeper
 getent passwd gatekeeper >/dev/null || \
-    useradd -r -g gatekeeper -d HOMEDIR -s /sbin/nologin \
+    useradd -r -g gatekeeper -d /opt/gatekeeper -s /sbin/nologin \
     -c "Gatekeeper service account" gatekeeper
 
 %prep

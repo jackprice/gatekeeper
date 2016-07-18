@@ -72,6 +72,6 @@ public abstract class AbstractCommandWithConfiguration extends AbstractCommand {
             }
         }
 
-        if (options.hasLongOption("server")) configuration.replication.server = Boolean.TRUE;
+        if (line.hasOption("server")) configuration.replication.server = Boolean.TRUE;
     }
 }
