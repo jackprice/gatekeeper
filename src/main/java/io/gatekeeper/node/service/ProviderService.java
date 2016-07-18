@@ -277,7 +277,7 @@ public class ProviderService extends ServiceContainerAware implements Service {
      */
     private Class<? extends AbstractProvider> getClassFromType(Provider.TypeEnum type) throws Exception {
         switch (type) {
-            case SIGNED:
+            case SELF_SIGNED:
                 return SelfSignedProvider.class;
 
             case MANUAL:
