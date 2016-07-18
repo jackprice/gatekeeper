@@ -160,7 +160,7 @@ public class Client {
     private String makeConsulUrl(String path) {
         assert null != path;
 
-        if (prefix == null) {
+        if (prefix != null) {
             return String.format("http://%s:%s/v1/kv/%s/%s", host, port, prefix, path);
         } else {
             return String.format("http://%s:%s/v1/kv/%s", host, port, path);
