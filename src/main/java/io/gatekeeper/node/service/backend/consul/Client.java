@@ -140,7 +140,13 @@ public class Client {
         List<String> keys = new ArrayList<>(data.getArray().length());
 
         data.getArray().forEach((object) -> {
-            keys.add(object.toString());
+            String iter = object.toString();
+
+            if (prefix != null) {
+                iter = iter.substring(prefix.length());
+            }
+
+            keys.add(iter);
         });
 
         return keys;
