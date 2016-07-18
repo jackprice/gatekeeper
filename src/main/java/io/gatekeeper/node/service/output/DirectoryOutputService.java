@@ -83,7 +83,34 @@ public class DirectoryOutputService extends AbstractPollingOutputService<Directo
      * @return True if we made a change
      */
     private Boolean outputCertificate(Endpoint endpoint, Certificate certificate) throws Exception {
-        return outputCertificateFile(endpoint, certificate) | outputKeyFile(endpoint, certificate);
+        if (outputConfiguration.concatenate) {
+            return outputConcatenatedCertificateFile(endpoint, certificate);
+        } else {
+            return outputCertificateFile(endpoint, certificate) | outputKeyFile(endpoint, certificate);
+        }
+    }
+
+    /**
+     * Output a PEM file for this certificated into the configured directory.
+     *
+     * @return True if we made a change
+     */
+    private Boolean outputConcatenatedCertificateFile(Endpoint endpoint, Certificate certificate) throws Exception {
+        String data = certificate.getCertificate();
+
+        if (certificate.getChain() != null) {
+            data = data
+                .concat("\n")
+                .concat(certificate.getChain());
+        }
+
+        data = data.concat("\n")
+            .concat(certificate.getKey());
+
+        return putFileContents(
+            getCertificatePEMPathForEndpoint(endpoint),
+            data
+        );
     }
 
     /**
@@ -178,6 +205,19 @@ public class DirectoryOutputService extends AbstractPollingOutputService<Directo
     private Path getKeyPathForEndpoint(Endpoint endpoint) {
         return path.resolve(
             String.format("%s.key", endpoint.getUuid())
+        );
+    }
+
+    /**
+     * Returns the path to store the given endpoints certificate in PEM format at.
+     *
+     * @param endpoint The endpoint to store
+     *
+     * @return The path to store the endpoint's certificate
+     */
+    private Path getCertificatePEMPathForEndpoint(Endpoint endpoint) {
+        return path.resolve(
+            String.format("%s.pem", endpoint.getUuid())
         );
     }
 

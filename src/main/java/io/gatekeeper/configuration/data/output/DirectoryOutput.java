@@ -10,6 +10,9 @@ public class DirectoryOutput extends OutputConfiguration<DirectoryOutput, Direct
     @Config(name = "path", type = String.class)
     public String path;
 
+    @Config(name = "concatenate", type = Boolean.class)
+    public Boolean concatenate = false;
+
     @Override
     public Class<DirectoryOutputService> getServiceClass() {
         return DirectoryOutputService.class;
