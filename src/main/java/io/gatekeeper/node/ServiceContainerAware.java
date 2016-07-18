@@ -7,9 +7,9 @@ import io.gatekeeper.node.service.Service;
  */
 public abstract class ServiceContainerAware {
 
-    private ServiceContainer container;
+    protected ServiceContainer container;
 
-    protected void setContainer(ServiceContainer container) {
+    public void setContainer(ServiceContainer container) {
         this.container = container;
     }
 

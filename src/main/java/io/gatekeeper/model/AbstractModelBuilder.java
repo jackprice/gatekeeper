@@ -1,15 +1,37 @@
 package io.gatekeeper.model;
 
+import com.google.common.base.Charsets;
+import com.migcomponents.migbase64.Base64;
 import org.json.JSONObject;
 
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractModelBuilder<ApiModel, Model extends AbstractModel> {
 
-    public abstract Model unserialise(String data) throws Exception;
+    @SuppressWarnings("unchecked")
+    public Model unserialise(String data) throws Exception {
+        byte[] bytes = Base64.decode(data);
 
-    public abstract String serialise(Model model);
+        ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+
+        ObjectInputStream unserializer = new ObjectInputStream(stream);
+
+        return (Model) unserializer.readObject();
+    }
+
+    public String serialise(Model model) throws IOException {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+        ObjectOutputStream serializer = new ObjectOutputStream(stream);
+
+        serializer.writeObject(model);
+
+        stream.close();
+
+        return Base64.encodeToString(stream.toByteArray(), false);
+    }
 
     public abstract ApiModel toApiModel(Model model);
 
@@ -33,8 +55,10 @@ public abstract class AbstractModelBuilder<ApiModel, Model extends AbstractModel
         );
     }
 
-    static Map<String, ?> jsonObjectToMap(JSONObject json) {
-        Map<String, ?> map = new HashMap<>();
+    static Map<String, Object> jsonObjectToMap(JSONObject json) {
+        Map<String, Object> map = new HashMap<>();
+
+        json.keys().forEachRemaining((key) -> map.put(key, json.get(key)));
 
         return map;
     }

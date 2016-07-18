@@ -137,6 +137,7 @@ public class ApiService implements Service {
         routes.put(new PathDefinition("/api/endpoint/:id", HttpMethod.GET), GetEndpoint.class);
         routes.put(new PathDefinition("/api/endpoint", HttpMethod.GET), GetEndpoints.class);
         routes.put(new PathDefinition("/api/endpoint", HttpMethod.POST), CreateEndpoint.class);
+        routes.put(new PathDefinition("/api/provider/:id/extra/:command", HttpMethod.GET), GetProviderExtra.class);
         routes.put(new PathDefinition("/api/provider/:id", HttpMethod.GET), GetProvider.class);
         routes.put(new PathDefinition("/api/provider", HttpMethod.GET), GetProviders.class);
         routes.put(new PathDefinition("/api/provider", HttpMethod.POST), CreateProvider.class);

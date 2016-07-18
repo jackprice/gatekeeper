@@ -38,7 +38,7 @@ public abstract class AbstractController {
     /**
      * The currently-being handled routing context.
      */
-    private RoutingContext context;
+    protected RoutingContext context;
 
     /**
      * The request that is currently being handled.

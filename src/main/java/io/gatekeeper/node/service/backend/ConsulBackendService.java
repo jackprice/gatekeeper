@@ -11,6 +11,7 @@ import io.gatekeeper.node.service.backend.consul.Client;
 import io.gatekeeper.node.service.backend.consul.runnable.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -160,6 +161,15 @@ public class ConsulBackendService extends BackendService<LocalBackendConfigurati
         CompletableFuture<ProviderModel> future = new CompletableFuture<>();
 
         executor.execute(new FetchProviderByIdUnsafeRunnable(id, future, client));
+
+        return future;
+    }
+
+    @Override
+    public CompletableFuture<Void> saveProviderDataUnsafe(UUID id, Map<String, Object> data) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        executor.execute(new SaveProviderDataByIdUnsafeRunnable(id, data, future, client));
 
         return future;
     }

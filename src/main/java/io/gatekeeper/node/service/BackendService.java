@@ -11,6 +11,7 @@ import io.gatekeeper.node.service.backend.common.crypto.EncryptionProvider;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -212,6 +213,16 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
      * @return The specified provider
      */
     public abstract CompletableFuture<ProviderModel> fetchProviderUnsafe(String id);
+
+    /**
+     * Save a provider's internal data (without acquiring a global lock)
+     *
+     * @param id   The ID of the provider
+     * @param data The updated data to store
+     *
+     * @return The specified provider
+     */
+    public abstract CompletableFuture<Void> saveProviderDataUnsafe(UUID id, Map<String, Object> data);
 
     /**
      * Fetch the certificate for the given endpoint.

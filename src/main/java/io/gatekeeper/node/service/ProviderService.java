@@ -309,6 +309,8 @@ public class ProviderService extends ServiceContainerAware implements Service {
             try {
                 AbstractProvider provider = constructor.newInstance(executor);
 
+                provider.setContainer(container);
+
                 provider.configure(model);
 
                 return provider;

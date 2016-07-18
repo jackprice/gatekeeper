@@ -261,7 +261,7 @@ public class Client implements Closeable {
     private String createSession() throws Exception {
         Map<String, Object> map = new HashMap<>();
 
-        map.put("TTL", "30s");
+        map.put("TTL", "120s");
         map.put("LockDelay", "0s");
 
         JSONObject data = new JSONObject(map);

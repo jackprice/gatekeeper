@@ -11,6 +11,7 @@ import io.gatekeeper.node.service.ReplicationService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -135,6 +136,11 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
 
     @Override
     public CompletableFuture<ProviderModel> fetchProviderUnsafe(String id) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> saveProviderDataUnsafe(UUID id, Map<String, Object> data) {
         return null;
     }
 

@@ -4,6 +4,8 @@ import io.gatekeeper.model.CertificateModel;
 import io.gatekeeper.model.EndpointModel;
 import io.gatekeeper.model.ProviderModel;
 import io.gatekeeper.node.ServiceContainerAware;
+import io.gatekeeper.node.service.BackendService;
+import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.codec.binary.Base64;
 import sun.security.provider.X509Factory;
 
@@ -37,6 +39,11 @@ public abstract class AbstractProvider extends ServiceContainerAware implements 
      * The length of certificate to issue.
      */
     protected Duration length = Duration.of(365, DAYS);
+
+    /**
+     * The ID of this provider.
+     */
+    protected String id;
 
     /**
      * The UUID of this provider.
@@ -115,7 +122,18 @@ public abstract class AbstractProvider extends ServiceContainerAware implements 
      * @param model
      */
     public void configure(ProviderModel model) {
+        this.id = model.getId();
         this.uuid = model.getUuid();
+        this.data = model.getData();
+    }
+
+    /**
+     * Save the data inside this provider.
+     */
+    protected void saveData() throws Exception {
+        service(BackendService.class)
+            .saveProviderDataUnsafe(uuid, data)
+            .get();
     }
 
     /**
@@ -145,7 +163,20 @@ public abstract class AbstractProvider extends ServiceContainerAware implements 
          *
          * @return The issued certificate
          */
-        public CompletableFuture<CertificateModel> renew(EndpointModel endpoint);
+        CompletableFuture<CertificateModel> renew(EndpointModel endpoint);
 
+    }
+
+    /**
+     * An interface for providers that provide API endpoints, such as the ACME .well-known URL.
+     */
+    public interface SubRoutable {
+
+        /**
+         * Handle a sub-route to this provider.
+         *
+         * @param context The routing context
+         */
+        void handle(RoutingContext context);
     }
 }

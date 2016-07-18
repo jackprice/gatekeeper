@@ -2,9 +2,10 @@ package io.gatekeeper.model;
 
 import io.gatekeeper.InvalidConfigurationException;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-abstract public class AbstractModel {
+abstract public class AbstractModel implements Serializable {
 
     /**
      * The unique UUID of this model.

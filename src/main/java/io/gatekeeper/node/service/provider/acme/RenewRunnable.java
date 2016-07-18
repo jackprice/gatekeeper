@@ -14,7 +14,11 @@ import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * This runnable is a wrapper around the command to renew a certificate.
@@ -37,6 +41,11 @@ public class RenewRunnable implements Runnable {
     private CompletableFuture<CertificateModel> future;
 
     /**
+     * A callback to be used internally for storing data on this provider.
+     */
+    private Function<Map<String, Object>, CompletableFuture<Void>> setDataCallback;
+
+    /**
      * Public constructor.
      *
      * @param configuration The ACME provider configuration
@@ -46,11 +55,13 @@ public class RenewRunnable implements Runnable {
     public RenewRunnable(
         Configuration configuration,
         EndpointModel endpoint,
-        CompletableFuture<CertificateModel> future
+        CompletableFuture<CertificateModel> future,
+        Function<Map<String, Object>, CompletableFuture<Void>> setDataCallback
     ) {
         this.configuration = configuration;
         this.endpoint = endpoint;
         this.future = future;
+        this.setDataCallback = setDataCallback;
     }
 
     /**
@@ -135,7 +146,11 @@ public class RenewRunnable implements Runnable {
         String token = challenge.getToken();
         String content = challenge.getAuthorization();
 
-        // TODO: Store this!
+        Map<String, Object> data = new HashMap<>();
+
+        data.put(token, content);
+
+        setDataCallback.apply(data).get();
 
         client.triggerChallenge(registration, challenge);
 

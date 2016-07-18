@@ -2,10 +2,8 @@ package io.gatekeeper.model;
 
 import io.gatekeeper.api.model.Provider;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A provider is responsible for generating and managing the certificates for endpoints.
@@ -27,6 +25,11 @@ public class ProviderModel extends AbstractModel {
      * Provider-specific configuration for this provider.
      */
     protected Object configuration;
+
+    /**
+     * Internally stored data that is persisted by this provider.
+     */
+    protected Map<String, Object> data = new HashMap<>();
 
     public String getId() {
         return id;
@@ -50,5 +53,13 @@ public class ProviderModel extends AbstractModel {
 
     public void setConfiguration(Object configuration) {
         this.configuration = configuration;
+    }
+
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public void setData(Map<String, Object> data) {
+        this.data = data;
     }
 }

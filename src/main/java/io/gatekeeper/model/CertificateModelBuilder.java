@@ -9,39 +9,6 @@ import java.util.UUID;
 public class CertificateModelBuilder extends AbstractModelBuilder<Certificate, CertificateModel> {
 
     @Override
-    public CertificateModel unserialise(String data) throws Exception {
-        JSONObject object = new JSONObject(data);
-        CertificateModel model = new CertificateModel();
-
-        model.setUuid(UUID.fromString(object.getString("uuid")));
-        model.setDn(object.getString("dn"));
-        model.setExpires(new ISO8601DateFormat().parse(object.getString("expires")));
-        model.setProvider(UUID.fromString(object.getString("provider")));
-        model.setCreated(new ISO8601DateFormat().parse(object.getString("created")));
-        model.setCertificate(object.getString("certificate"));
-        model.setKey(object.getString("key"));
-        model.setChain(object.optString("chain"));
-
-        return model;
-    }
-
-    @Override
-    public String serialise(CertificateModel model) {
-        JSONObject object = new JSONObject();
-
-        object.put("uuid", model.getUuid().toString());
-        object.put("dn", model.getDn());
-        object.put("expires", new ISO8601DateFormat().format(model.getExpires()));
-        object.put("provider", model.getProvider().toString());
-        object.put("created", new ISO8601DateFormat().format(model.getCreated()));
-        object.put("certificate", model.getCertificate());
-        object.put("key", model.getKey());
-        object.put("chain", model.getChain());
-
-        return object.toString();
-    }
-
-    @Override
     public Certificate toApiModel(CertificateModel model) {
         Certificate certificate = new Certificate();
 
