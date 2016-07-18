@@ -203,7 +203,6 @@ public class Client implements Closeable {
         data.put("ServiceID", serviceName);
         data.put("HTTP", String.format("http://%s:%d/api/version", serviceHost, servicePort));
         data.put("Interval", "10s");
-        data.put("TTL", "15s");
 
         HttpResponse<JsonNode> response = doConsulRequest(
             HttpMethod.PUT,

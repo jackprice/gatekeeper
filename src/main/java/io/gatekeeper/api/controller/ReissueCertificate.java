@@ -55,8 +55,6 @@ public class ReissueCertificate extends AbstractController {
             certificate = (CertificateModel) get(BackendService.class)
                 .reissueCertificate(endpoint)
                 .get(timeout, timeoutUnit);
-
-            return certificate;
         } else {
             try {
                 certificate = (CertificateModel) get(BackendService.class)
@@ -67,8 +65,14 @@ public class ReissueCertificate extends AbstractController {
 
                 return new Object();
             }
-
-            return certificate;
         }
+
+        if (certificate == null) {
+            status(204);
+
+            return new Object();
+        }
+
+        return certificate;
     }
 }

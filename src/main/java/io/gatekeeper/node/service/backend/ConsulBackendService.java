@@ -187,15 +187,6 @@ public class ConsulBackendService extends BackendService<LocalBackendConfigurati
     }
 
     @Override
-    public CompletableFuture<Void> saveProviderDataUnsafe(UUID id, Map<String, Object> data) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-
-        executor.execute(new SaveProviderDataByIdUnsafeRunnable(id, data, future, client));
-
-        return future;
-    }
-
-    @Override
     public CompletableFuture<CertificateModel> fetchCertificate(EndpointModel endpoint) {
         CompletableFuture<CertificateModel> future = new CompletableFuture<>();
 

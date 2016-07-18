@@ -226,16 +226,6 @@ public abstract class BackendService<BackendConfigurationType extends BackendCon
     public abstract CompletableFuture<ProviderModel> fetchProviderUnsafe(String id);
 
     /**
-     * Save a provider's internal data (without acquiring a global lock)
-     *
-     * @param id   The ID of the provider
-     * @param data The updated data to store
-     *
-     * @return The specified provider
-     */
-    public abstract CompletableFuture<Void> saveProviderDataUnsafe(UUID id, Map<String, Object> data);
-
-    /**
      * Fetch the certificate for the given endpoint.
      *
      * @param endpoint The endpoint to query

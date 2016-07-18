@@ -128,15 +128,6 @@ public abstract class AbstractProvider extends ServiceContainerAware implements 
     }
 
     /**
-     * Save the data inside this provider.
-     */
-    protected void saveData() throws Exception {
-        service(BackendService.class)
-            .saveProviderDataUnsafe(uuid, data)
-            .get();
-    }
-
-    /**
      * Boot this provider.
      *
      * @return A future that completes when this provider is started

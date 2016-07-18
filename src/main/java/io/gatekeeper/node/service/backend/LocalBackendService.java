@@ -13,7 +13,6 @@ import io.gatekeeper.node.service.backend.common.ReplicatedMap;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -24,7 +23,13 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
 
     private List<ProviderModel> providers = new ArrayList<>();
 
-    public LocalBackendService(Configuration configuration, ReplicationService replication, ProviderService providers) throws Exception {
+    private List<CertificateModel> certificates = new ArrayList<>();
+
+    public LocalBackendService(
+        Configuration configuration,
+        ReplicationService replication,
+        ProviderService providers
+    ) throws Exception {
         super(configuration, replication, providers);
     }
 
@@ -143,22 +148,24 @@ public class LocalBackendService extends BackendService<LocalBackendConfiguratio
 
     @Override
     public CompletableFuture<ProviderModel> fetchProviderUnsafe(String id) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<Void> saveProviderDataUnsafe(UUID id, Map<String, Object> data) {
-        return null;
+        return fetchProvider(id);
     }
 
     @Override
     public CompletableFuture<CertificateModel> fetchCertificate(EndpointModel endpoint) {
-        return null;
+        UUID id = endpoint.getCertificate();
+
+        List<CertificateModel> matches = this.certificates
+            .stream()
+            .filter((certificate -> certificate.getUuid().equals(id)))
+            .collect(Collectors.toList());
+
+        return CompletableFuture.completedFuture(matches.size() == 1 ? matches.get(0) : null);
     }
 
     @Override
     public CompletableFuture<CertificateModel> fetchCertificateBlocking(EndpointModel endpoint) {
-        return null;
+        return fetchCertificate(endpoint);
     }
 
     @Override
