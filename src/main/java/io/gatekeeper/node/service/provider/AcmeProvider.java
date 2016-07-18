@@ -70,6 +70,8 @@ public class AcmeProvider extends AbstractProvider implements AbstractProvider.R
 
     @Override
     public CompletableFuture<Void> start() {
+        logger.info("Starting ACME provider " + id);
+
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         executor.execute(() -> {

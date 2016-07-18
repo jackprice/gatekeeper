@@ -217,6 +217,13 @@ public class ApiService implements Service {
             throw new NotFoundException();
         }
 
+        if (object.getClass().equals(Object.class)) {
+            context.response().setStatusCode(204);
+            context.response().end();
+
+            return;
+        }
+
         // Convert lists of objects if possible
         if (List.class.isAssignableFrom(object.getClass())) {
             object = ((List) object).stream()

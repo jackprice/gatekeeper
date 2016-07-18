@@ -24,4 +24,8 @@ public class Loggers {
         return Logger.getLogger("output");
     }
 
+    public static Logger getProviderLogger() {
+        return Logger.getLogger("provider");
+    }
+
 }

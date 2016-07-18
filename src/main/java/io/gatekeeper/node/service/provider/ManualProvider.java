@@ -21,6 +21,8 @@ public class ManualProvider extends AbstractProvider {
 
     @Override
     public CompletableFuture<Void> start() {
+        logger.info("Starting manual provider " + id);
+
         return CompletableFuture.completedFuture(null);
     }
 }

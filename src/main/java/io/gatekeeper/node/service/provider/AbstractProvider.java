@@ -1,5 +1,6 @@
 package io.gatekeeper.node.service.provider;
 
+import io.gatekeeper.logging.Loggers;
 import io.gatekeeper.model.CertificateModel;
 import io.gatekeeper.model.EndpointModel;
 import io.gatekeeper.model.ProviderModel;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.logging.Logger;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -54,6 +56,11 @@ public abstract class AbstractProvider extends ServiceContainerAware implements 
      * Internally stored data that is persisted by this provider.
      */
     protected Map<String, Object> data = new HashMap<>();
+
+    /**
+     * A logger for this provider.
+     */
+    protected Logger logger = Loggers.getProviderLogger();
 
     /**
      * Default public constructor.

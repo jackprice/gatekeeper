@@ -39,6 +39,8 @@ public class SelfSignedProvider extends AbstractProvider implements AbstractProv
 
     @Override
     public CompletableFuture<Void> start() {
+        logger.info("Starting SelfSigned provider " + id);
+
         return CompletableFuture.completedFuture(null);
     }
 
